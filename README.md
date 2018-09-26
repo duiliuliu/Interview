@@ -4,7 +4,15 @@
 ### 3. [计算机网络](#计算机网络)
 ### 4. [数据结构](#数据结构)
 ### 5. [数据库](#数据库)
-### 6. [Java](#Java)
+### 6. [设计模式](#设计模式)
+### 7. [Java](#Java)
+### 8. [java编程基础](#java编程基础)
+### 9. [java面向对象](#java面向对象)
+### 10. [java集合](#java集合)
+### 11. [javaIO](#javaIO)
+### 12. [java反射](#java反射)
+### 13. [java并发编程](#java并发编程)
+### 14. [JVM](#JVM)
 
 
 > # 正文
@@ -24,7 +32,7 @@
     - es建表语句
     - es增删改改查
     
-## 操作系统
+## 操作系统  
 
 #### 进程、线程
 
@@ -103,7 +111,7 @@ D 线程是系统进行资源分配和调度的一个独立单位
 
 #### osi七层模型、TCP/IP模型
 
-* 应用层    HTTP、SNMP、telnet
+* 应用层    HTTP、SMTP 、telnet、DHCP、PPTP
 * 传输层    判断数据包的可靠性，错误重传机制，TCP/UDP协议
     - TCP 协议  基于连接的
 * 网络层    路由    ip协议，标识各个网络节点
@@ -120,6 +128,68 @@ D 线程是系统进行资源分配和调度的一个独立单位
     - 中间人攻击
     - 窃取
     - 篡改
+
+#### TCP
+
+TCP（Transmission Control Protocol 传输控制协议）是一种面向连接的、可靠的、基于字节流的传输层通信协议
+
+    - 在数据正确性与合法性上，TCP用一个校验和函数来检验数据是否有错误，在发送和接收时都要计算校验和；同时可以使用md5认证对数据进行加密。
+    - 在保证可靠性上，采用超时重传和捎带确认机制。
+    - 在流量控制上，采用滑动窗口协议，协议中规定，对于窗口内未经确认的分组需要重传。
+    - 在拥塞控制上，采用TCP拥塞控制算法（也称AIMD算法）。该算法主要包括三个主要部分：1）加性增、乘性减；2）慢启动；3）对超时事件做出反应。
+
+* 报头
+
+    ![TCP报文头模型](./images/TCP报文头模型.png)
+
+    我们来分析分析每部分的含义和作用
+
+    * 源端口号/目的端口号: 各占两个字节，端口是传输层与应用层的服务接口
+    * 32位序号: 占4字节，连接中传送的数据流中的每一个字节都编上一个序号。序号字段的值则指的是本报文段所发送的数据的第一个字节的序号。
+    * 确认序号: 占 4 字节,是期望收到对方的下一个报文段的数据的第一个字节的序号
+    * 4位首部长度: 表示该tcp报头有多少个4字节(32个bit)
+    * 6位保留:  占 6 位,保留为今后使用,但目前应置为 0
+    * 6位标志位
+
+        URG: 标识紧急指针是否有效 
+
+        ACK: 标识确认序号是否有效 。只有当 ACK=1 时确认号字段才有效.当 ACK=0 时,确认号无效
+
+        PSH: 用来提示接收端应用程序立刻将数据从tcp缓冲区读走 
+
+        RST: 要求重新建立连接. 我们把含有RST标识的报文称为复位报文段 
+
+        SYN: 请求建立连接. 我们把含有SYN标识的报文称为同步报文段 。　同步 SYN = 1 表示这是一个连接请求或连接接受报文
+
+        FIN: 通知对端, 本端即将关闭. 我们把含有FIN标识的报文称为结束报文段。FIN=1 表明此报文段的发送端的数据已发送完毕,并要求释放运输连接
+
+    * 16位窗口大小: 
+    * 16位检验和: 由发送端填充, 检验形式有CRC校验等. 如果接收端校验不通过, 则认为数据有问题. 此处的校验和不光包含TCP首部, 也包含TCP数据部分. 
+    * 16位紧急指针: 用来标识哪部分数据是紧急数据.
+    选项和数据暂时忽略
+
+
+## 数据结构
+
+#### 红黑树与b树
+
+#### 用两个栈实现一个队列或者俩个队列实现一个栈
+
+1. 区别与联系
+
+相同点：
+（1）栈和队列都是控制访问点的线性表；
+（2）栈和队列都是允许在端点处进行数据的插入和删除的数据结构；
+
+不同点：
+（1）栈遵循“后进先出（LIFO）”的原则，即只能在该线性表的一头进行数据的插入和删除，该位置称为“栈顶”，而另外一头称为“栈底”；根据该特性，实现栈时用顺序表比较好；
+（2）队列遵循“先进先出（FIFO）”的原则，即只能在队列的尾部插入元素，头部删除元素。根据该特性，在实现队列时用链表比较好
+
+2. 两站实现队列
+栈是后进先出的，所以两个栈 一个栈用来入栈，而将栈中的数据再次出栈存入另一个栈中，这样经过两次后进先出， 则实现了先进先出
+
+3. 两队列实现栈
+始终保持一个队列为空，需要出队时，队列抛出n-1个数据到另一队列中，只留下一个top1数据，这样那个队列再次pop,pop的数据就是队首元素了。
 
 ## 数据库
 
@@ -234,10 +304,66 @@ cglib可以对任意类生成代理对象，它的原理是对目标对象进行
 
 client ---------->       Handler( 接口 setSuccessor/HandleRequest)   -------------------concreteHAndler1  ------------------ concreteHandler2 ...
 
+## java编程基础
+
+##### String类为什么不可变
+
+```
+public final class String
+    implements java.io.Serializable, Comparable<String>, CharSequence
+{
+    /** String本质是个char数组. 而且用final关键字修饰.*/
+    private final char value[];
+```
+
+1. 字符串常量池的需要
+
+字符串常量池是Java内存中一个特殊的存储区域，当创建一个String对象时，假如此字符串值在常量池中已经存在，则不会创建一个新的对象，而是引用已存在的对象。
+因为String是不可变类，可靠。如果String可变，则某个对象的改变会引起其他对象的改变。
+
+2. 允许String对象缓存HashCode
+
+java中String对象的哈希码被频繁的使用，比如hashMap等容器中。
+字符串不变保证了hash码的唯一性。如果可变，string改变后将可能导致出现相同的hashCode
+
+3. 安全性
+
+String类被许多类库作为参数，例如，网络连接地址url，文件路径path，还有反射机制所需要的String参数等，假若String不是固定不变的，将会引起各种安全隐患
+
+#### java中Byte怎么转换为String
+
+* String转化为byte[]数组
+
+```
+String str = "abcd";
+byte[] bs = str.getBytes();
+```
+
+* byte[]数组转化为String字符串
+
+```
+byte[] bs1 = {97,98,100};
+String s = new String(bs1);
+```
+
+* 设置格式
+
+```
+byte[] srtbyte = {97,98,98};
+String res = new String(srtbyte,"UTF-8");
+```
+
+## java面向对象
+
+## java集合
+
+## javaIO
+
+## java反射
 
 ## java并发编程
 
-## 三个并发编程概念
+#### 三个并发编程概念
 
 *   原子性问题
     * 原子是世界上的最小单位，具有不可分割性
@@ -275,6 +401,12 @@ ReentrantLock是java.util.concurrent包下提供的一套互斥锁，相比Synch
 *    1. 等待可中断，持有锁的线程长期不释放的时候，正在等待的线程可以选择放弃等待，这相当于Synchronized来说可以避免出现死锁的情况。
 *    2. 公平锁，多个线程等待同一个锁时，必须按照申请锁的时间顺序获得锁，Synchronized锁非公平锁，ReentrantLock默认的构造函数是创建的非公平锁，可以通过参数true设为公平锁，但公平锁表现的性能不是很好。
 *    3. 锁绑定多个条件，一个ReentrantLock对象可以同时绑定对个对象。
+*    4. 常见api
+     <br>isFair()        //判断锁是否是公平锁
+　　 <br>isLocked()    //判断锁是否被任何线程获取了 
+　　 <br>isHeldByCurrentThread()   //判断锁是否被当前线程获取了 
+　　 <br>hasQueuedThreads()   //判断是否有线程在等待该锁 
+ 
 
 ```
 private Lock lock=new ReentrantLock();
@@ -287,7 +419,6 @@ public void run() {
         lock.unlock();
     }
 }
-
 ```
 
 #### 缓存一致性
@@ -312,6 +443,123 @@ public void run() {
 #### Java原子类
 
 在java 1.5的java.util.concurrent.atomic包下提供了一些原子操作类，即对基本数据类型的 自增（加1操作），自减（减1操作）、以及加法操作（加一个数），减法操作（减一个数）进行了封装，保证这些操作是原子性操作。atomic是利用CAS来实现原子性操作的（Compare And Swap），CAS实际上是利用处理器提供的CMPXCHG指令实现的，而处理器执行CMPXCHG指令是一个原子性操作。
+
+    AtomicBoolean 
+    AtomicInteger 
+    AtomicIntegerArray 
+    AtomicIntegerFieldUpdater 
+    AtomicLong 
+    AtomicLongArray 
+    AtomicLongFieldUpdater 
+    AtomicMarkableReference 
+    AtomicReference 
+    AtomicReferenceArray 
+    AtomicReferenceFieldUpdater 
+    AtomicStampedReference 
+    DoubleAccumulator 
+    DoubleAdder 
+    LongAccumulator 
+    LongAdder
+
+
+- 实现原理
+
+    ```
+    /**
+        * Atomically increments by one the current value.
+        *
+        * @return the updated value
+        */
+        public final int incrementAndGet() {
+            for (;;) {
+                int current = get();
+                int next = current + 1;
+                if (compareAndSet(current, next))
+                    return next;
+            }
+        }
+    ```
+1. 先获取当前的value值 
+2. 对value加一 
+3. 第三步是关键步骤，调用compareAndSet方法来来进行原子更新操作，这个方法的语义是：
+
+    先检查当前value是否等于current，如果相等，则意味着value没被其他线程修改过，更新并返回true。如果不相等，compareAndSet则会返回false，然后循环继续尝试更新。
+
+
+#### CAS(Compare-and-Swap)　
+
+CAS算法是由硬件直接支持来保证原子性的，有三个操作数：内存位置V、旧的预期值A和新值B，当且仅当V符合预期值A时，CAS用新值B原子化地更新V的值，否则，它什么都不做。
+
+- CAS的ABA问题
+
+    当然CAS也并不完美，它存在"ABA"问题，假若一个变量初次读取是A，在compare阶段依然是A，但其实可能在此过程中，它先被改为B，再被改回A，而CAS是无法意识到这个问题的。CAS只关注了比较前后的值是否改变，而无法清楚在此过程中变量的变更明细，这就是所谓的ABA漏洞。 
+
+#### 锁相关概念
+
+- 可重入锁
+
+    如果锁具备可重入性，则称作为可重入锁。像synchronized和ReentrantLock都是可重入锁，可重入性在我看来实际上表明了锁的分配机制：基于线程的分配，而不是基于方法调用的分配。举个简单的例子，当一个线程执行到某个synchronized方法时，比如说method1，而在method1中会调用另外一个synchronized方法method2，此时线程不必重新去申请锁，而是可以直接执行方法method2。 
+
+    ```
+    public MyClass{
+        public synchronized void method1(){
+            method2();
+        }
+        public synchronized void method2(){
+
+        }
+    }
+    ```
+
+    机制：每个锁都关联一个请求计数器和一个占有他的线程，当请求计数器为0时，这个锁可以被认为是unhled的，当一个线程请求一个unheld的锁时，JVM记录锁的拥有者，并把锁的请求计数加1，如果同一个线程再次请求这个锁时，请求计数器就会增加，当该线程退出syncronized块时，计数器减1，当计数器为0时，锁被释放。
+
+- 可中断锁
+
+    可中断锁：顾名思义，就是可以相应中断的锁。 
+
+    在Java中，synchronized就不是可中断锁，而Lock是可中断锁。 
+    
+    如果某一线程A正在执行锁中的代码，另一线程B正在等待获取该锁，可能由于等待时间过长，线程B不想等待了，想先处理其他事情，我们可以让它中断自己或者在别的线程中中断它，这种就是可中断锁。 
+
+- 公平锁
+
+    公平锁即尽量以请求锁的顺序来获取锁。比如同是有多个线程在等待一个锁，当这个锁被释放时，等待时间最久的线程（最先请求的线程）会获得该所，这种就是公平锁。
+     
+    非公平锁即无法保证锁的获取是按照请求锁的顺序进行的。这样就可能导致某个或者一些线程永远获取不到锁。 
+    
+    在Java中，synchronized就是非公平锁，它无法保证等待的线程获取锁的顺序。
+
+    而对于ReentrantLock和ReentrantReadWriteLock，它默认情况下是非公平锁，但是可以设置为公平锁。
+
+    ```
+    ReentrantLock lock = new ReentrantLock(true); \\公平锁
+    ```
+ 
+
+- 读写锁
+
+    读写锁将对一个资源（比如文件）的访问分成了2个锁，一个读锁和一个写锁。 
+    
+    正因为有了读写锁，才使得多个线程之间的读操作不会发生冲突。 
+    
+    ReadWriteLock就是读写锁，它是一个接口，ReentrantReadWriteLock实现了这个接口。 
+    
+    可以通过readLock()获取读锁，通过writeLock()获取写锁
+ 
+- 偏向锁
+
+    java偏向锁(Biased Locking)是java6引入的一项多线程优化.它通过消除资源无竞争q情况下的同步原语,进一步提高了程序的运行性能.
+
+    偏向锁，顾名思义，它会偏向于第一个访问锁的线程，如果在接下来的运行过程中，该锁没有被其他的线程访问，则持有偏向锁的线程将永远不需要触发同步。 
+
+    如果在运行过程中，遇到了其他线程抢占锁，则持有偏向锁的线程会被挂起，JVM会尝试消除它身上的偏向锁，将锁恢复到标准的轻量级锁。(偏向锁只能在单线程下起作用) 
+
+    因此 流程是这样的 偏向锁->轻量级锁->重量级锁
+
+    偏向锁，简单的讲，就是在锁对象的对象头中有个ThreaddId字段，这个字段如果是空的，第一次获取锁的时候，就将自身的ThreadId写入到锁的ThreadId字段内，将锁头内的是否偏向锁的状态位置1.这样下次获取锁的时候，直接检查ThreadId是否和自身线程Id一致，如果一致，则认为当前线程已经获取了锁，因此不需再次获取锁，略过了轻量级锁和重量级锁的加锁阶段。提高了效率。 
+     
+ 
+- 乐观锁，悲观锁
 
 #### 锁的优化策略
 
@@ -393,75 +641,7 @@ java.util.concurrent.Executors工厂类可以创建四种类型的线程池，�
         1. 工作线程会从DelayQueue中取出已经到期的任务去执行； 
         2. 执行结束后重新设置任务的到期时间，再次放回DelayQueue。
 
-
-## String类为什么不可变
-
-```
-public final class String
-    implements java.io.Serializable, Comparable<String>, CharSequence
-{
-    /** String本质是个char数组. 而且用final关键字修饰.*/
-    private final char value[];
-```
-
-1. 字符串常量池的需要
-
-字符串常量池是Java内存中一个特殊的存储区域，当创建一个String对象时，假如此字符串值在常量池中已经存在，则不会创建一个新的对象，而是引用已存在的对象。
-因为String是不可变类，可靠。如果String可变，则某个对象的改变会引起其他对象的改变。
-
-2. 允许String对象缓存HashCode
-
-java中String对象的哈希码被频繁的使用，比如hashMap等容器中。
-字符串不变保证了hash码的唯一性。如果可变，string改变后将可能导致出现相同的hashCode
-
-3. 安全性
-
-String类被许多类库作为参数，例如，网络连接地址url，文件路径path，还有反射机制所需要的String参数等，假若String不是固定不变的，将会引起各种安全隐患
-
-## java中Byte怎么转换为String
-
-* String转化为byte[]数组
-
-```
-String str = "abcd";
-byte[] bs = str.getBytes();
-```
-
-* byte[]数组转化为String字符串
-
-```
-byte[] bs1 = {97,98,100};
-String s = new String(bs1);
-```
-
-* 设置格式
-
-```
-byte[] srtbyte = {97,98,98};
-String res = new String(srtbyte,"UTF-8");
-```
-
-## 数据结构
-
-#### 红黑树与b树
-
-#### 用两个栈实现一个队列或者俩个队列实现一个栈
-
-1. 区别与联系
-
-相同点：
-（1）栈和队列都是控制访问点的线性表；
-（2）栈和队列都是允许在端点处进行数据的插入和删除的数据结构；
-
-不同点：
-（1）栈遵循“后进先出（LIFO）”的原则，即只能在该线性表的一头进行数据的插入和删除，该位置称为“栈顶”，而另外一头称为“栈底”；根据该特性，实现栈时用顺序表比较好；
-（2）队列遵循“先进先出（FIFO）”的原则，即只能在队列的尾部插入元素，头部删除元素。根据该特性，在实现队列时用链表比较好
-
-2. 两站实现队列
-栈是后进先出的，所以两个栈 一个栈用来入栈，而将栈中的数据再次出栈存入另一个栈中，这样经过两次后进先出， 则实现了先进先出
-
-3. 两队列实现栈
-始终保持一个队列为空，需要出队时，队列抛出n-1个数据到另一队列中，只留下一个top1数据，这样那个队列再次pop,pop的数据就是队首元素了。
+## JVM
 
 ## oom
 
