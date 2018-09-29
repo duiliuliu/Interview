@@ -1,56 +1,56 @@
 package java.io;
 
 /** 
- *PipedInputStreamå¿…é¡»å’ŒPipedOutputStreamè”åˆä½¿ç”¨ã€‚å³å¿…é¡»è¿æ¥è¾“å…¥éƒ¨åˆ†ã€‚
- *å…¶åŸç†ä¸ºï¼šPipedInputStreamå†…éƒ¨æœ‰ä¸€ä¸ªBufferï¼Œ
- *PipedInputStreamå¯ä»¥ä½¿ç”¨InputStreamçš„æ–¹æ³•è¯»å–å…¶Bufferä¸­çš„å­—èŠ‚ã€‚
- *PipedInputStreamä¸­Bufferä¸­çš„å­—èŠ‚æ˜¯PipedOutputStreamè°ƒç”¨PipedInputStreamçš„æ–¹æ³•æ”¾å…¥çš„ã€‚
+ *PipedInputStream±ØĞëºÍPipedOutputStreamÁªºÏÊ¹ÓÃ¡£¼´±ØĞëÁ¬½ÓÊäÈë²¿·Ö¡£
+ *ÆäÔ­ÀíÎª£ºPipedInputStreamÄÚ²¿ÓĞÒ»¸öBuffer£¬
+ *PipedInputStream¿ÉÒÔÊ¹ÓÃInputStreamµÄ·½·¨¶ÁÈ¡ÆäBufferÖĞµÄ×Ö½Ú¡£
+ *PipedInputStreamÖĞBufferÖĞµÄ×Ö½ÚÊÇPipedOutputStreamµ÷ÓÃPipedInputStreamµÄ·½·¨·ÅÈëµÄ¡£
  */
 public class PipedInputStream extends InputStream {
 
-    boolean closedByWriter = false;                      //æ ‡è¯†æœ‰è¯»å–æ–¹æˆ–å†™å…¥æ–¹å…³é—­
+    boolean closedByWriter = false;                      //±êÊ¶ÓĞ¶ÁÈ¡·½»òĞ´Èë·½¹Ø±Õ
     volatile boolean closedByReader = false;
-    boolean connected = false;                           //æ˜¯å¦å»ºç«‹è¿æ¥
-    Thread readSide;                                     //æ ‡è¯†å“ªä¸ªçº¿ç¨‹
+    boolean connected = false;                           //ÊÇ·ñ½¨Á¢Á¬½Ó
+    Thread readSide;                                     //±êÊ¶ÄÄ¸öÏß³Ì
     Thread writeSide;
 
-    protected static final int PIPE_SIZE = 1024;         //ç¼“å†²åŒºçš„é»˜è®¤å¤§å°
-    protected byte buffer[] = new byte[PIPE_SIZE];       //ç¼“å†²åŒº
-    protected int in = -1;                               //ä¸‹ä¸€ä¸ªå†™å…¥å­—èŠ‚çš„ä½ç½®ã€‚0ä»£è¡¨ç©ºï¼Œin==outä»£è¡¨æ»¡
-    protected int out = 0;                               //ä¸‹ä¸€ä¸ªè¯»å–å­—èŠ‚çš„ä½ç½®
+    protected static final int PIPE_SIZE = 1024;         //»º³åÇøµÄÄ¬ÈÏ´óĞ¡
+    protected byte buffer[] = new byte[PIPE_SIZE];       //»º³åÇø
+    protected int in = -1;                               //ÏÂÒ»¸öĞ´Èë×Ö½ÚµÄÎ»ÖÃ¡£0´ú±í¿Õ£¬in==out´ú±íÂú
+    protected int out = 0;                               //ÏÂÒ»¸ö¶ÁÈ¡×Ö½ÚµÄÎ»ÖÃ
 
-    public PipedInputStream(PipedOutputStream src) throws IOException {         //ç»™å®šæºçš„è¾“å…¥æµ
+    public PipedInputStream(PipedOutputStream src) throws IOException {         //¸ø¶¨Ô´µÄÊäÈëÁ÷
                     connect(src);
     }
 
-    public PipedInputStream() {}                                                //é»˜è®¤æ„é€ å™¨ï¼Œä¸‹éƒ¨ä¸€å®šè¦connectæº
+    public PipedInputStream() {}                                                //Ä¬ÈÏ¹¹ÔìÆ÷£¬ÏÂ²¿Ò»¶¨ÒªconnectÔ´
 
-    public void connect(PipedOutputStream src) throws IOException {              //è¿æ¥è¾“å…¥æº,è°ƒç”¨æºçš„connectæ–¹æ³•è¿æ¥å½“å‰å¯¹è±¡
+    public void connect(PipedOutputStream src) throws IOException {              //Á¬½ÓÊäÈëÔ´,µ÷ÓÃÔ´µÄconnect·½·¨Á¬½Óµ±Ç°¶ÔÏó
         src.connect(this);                                                       
     }
 
-    protected synchronized void receive(int b) throws IOException {             //åªè¢«PipedOuputStreamè°ƒç”¨
-        checkStateForReceive();                                                 //æ£€æŸ¥çŠ¶æ€ï¼Œå†™å…¥
-        writeSide = Thread.currentThread();                                     //æ°¸è¿œæ˜¯PipedOuputStream
-        if (in == out)     awaitSpace();                                        //è¾“å…¥å’Œè¾“å‡ºç›¸ç­‰ï¼Œç­‰å¾…ç©ºé—´
+    protected synchronized void receive(int b) throws IOException {             //Ö»±»PipedOuputStreamµ÷ÓÃ
+        checkStateForReceive();                                                 //¼ì²é×´Ì¬£¬Ğ´Èë
+        writeSide = Thread.currentThread();                                     //ÓÀÔ¶ÊÇPipedOuputStream
+        if (in == out)     awaitSpace();                                        //ÊäÈëºÍÊä³öÏàµÈ£¬µÈ´ı¿Õ¼ä
 
         if (in < 0) {
             in = 0;
             out = 0;
         }
 
-        buffer[in++] = (byte)(b & 0xFF);                                        //æ”¾å…¥bufferç›¸åº”çš„ä½ç½®
-        if (in >= buffer.length) {      in = 0;         }                       //inä¸º0è¡¨ç¤ºbufferå·²ç©º
+        buffer[in++] = (byte)(b & 0xFF);                                        //·ÅÈëbufferÏàÓ¦µÄÎ»ÖÃ
+        if (in >= buffer.length) {      in = 0;         }                       //inÎª0±íÊ¾bufferÒÑ¿Õ
     }
 
 
 
     synchronized void receive(byte b[], int off, int len)  throws IOException {
         checkStateForReceive();
-        writeSide = Thread.currentThread();                                     //ä»PipedOutputStreamå¯ä»¥çœ‹å‡º
+        writeSide = Thread.currentThread();                                     //´ÓPipedOutputStream¿ÉÒÔ¿´³ö
         int bytesToTransfer = len;
         while (bytesToTransfer > 0) {
-            if (in == out)    awaitSpace();                                     //æ»¡äº†ï¼Œä¼šé€šçŸ¥è¯»å–çš„ï¼›ç©ºä¼šé€šçŸ¥å†™å…¥
+            if (in == out)    awaitSpace();                                     //ÂúÁË£¬»áÍ¨Öª¶ÁÈ¡µÄ£»¿Õ»áÍ¨ÖªĞ´Èë
             int nextTransferAmount = 0;
             if (out < in) {
                 nextTransferAmount = buffer.length - in;
@@ -74,7 +74,7 @@ public class PipedInputStream extends InputStream {
         }
     }
 
-    private void checkStateForReceive() throws IOException {                           //æ£€æŸ¥å½“å‰çŠ¶æ€ï¼Œç­‰å¾…è¾“å…¥
+    private void checkStateForReceive() throws IOException {                           //¼ì²éµ±Ç°×´Ì¬£¬µÈ´ıÊäÈë
         if (!connected) {
             throw new IOException("Pipe not connected");
         } else if (closedByWriter || closedByReader) {
@@ -84,10 +84,10 @@ public class PipedInputStream extends InputStream {
         }
     }
 
-    private void awaitSpace() throws IOException {                               //Bufferå·²æ»¡ï¼Œç­‰å¾…ä¸€æ®µæ—¶é—´
-        while (in == out) {                                                      //in==outè¡¨ç¤ºæ»¡äº†ï¼Œæ²¡æœ‰ç©ºé—´
-            checkStateForReceive();                                              //æ£€æŸ¥æ¥å—ç«¯çš„çŠ¶æ€
-            notifyAll();                                                         //é€šçŸ¥è¯»å–ç«¯
+    private void awaitSpace() throws IOException {                               //BufferÒÑÂú£¬µÈ´ıÒ»¶ÎÊ±¼ä
+        while (in == out) {                                                      //in==out±íÊ¾ÂúÁË£¬Ã»ÓĞ¿Õ¼ä
+            checkStateForReceive();                                              //¼ì²é½ÓÊÜ¶ËµÄ×´Ì¬
+            notifyAll();                                                         //Í¨Öª¶ÁÈ¡¶Ë
             try {
                 wait(1000);
             } catch (InterruptedException ex) {
@@ -96,7 +96,7 @@ public class PipedInputStream extends InputStream {
         }
     }
 
-    synchronized void receivedLast() {                                            //é€šçŸ¥æ‰€æœ‰ç­‰å¾…çš„çº¿ç¨‹ï¼ˆï¼‰å·²ç»æ¥å—åˆ°æœ€åçš„å­—èŠ‚
+    synchronized void receivedLast() {                                            //Í¨ÖªËùÓĞµÈ´ıµÄÏß³Ì£¨£©ÒÑ¾­½ÓÊÜµ½×îºóµÄ×Ö½Ú
 
             closedByWriter = true;                            
 
@@ -107,7 +107,7 @@ public class PipedInputStream extends InputStream {
 
 
     public synchronized int read()  throws IOException {
-        if (!connected) {                                                         //æ£€æŸ¥ä¸€äº›å†…éƒ¨çŠ¶æ€
+        if (!connected) {                                                         //¼ì²éÒ»Ğ©ÄÚ²¿×´Ì¬
             throw new IOException("Pipe not connected");
         } else if (closedByReader) {
             throw new IOException("Pipe closed");
@@ -115,14 +115,14 @@ public class PipedInputStream extends InputStream {
             throw new IOException("Write end dead");
         }
 
-        readSide = Thread.currentThread();                                        //å½“å‰çº¿ç¨‹è¯»å–
-        int trials = 2;                                                           //é‡å¤ä¸¤æ¬¡
+        readSide = Thread.currentThread();                                        //µ±Ç°Ïß³Ì¶ÁÈ¡
+        int trials = 2;                                                           //ÖØ¸´Á½´Î
         while (in < 0) {
-            if (closedByWriter) {              return -1;        }                 //è¾“å…¥æ–­å…³é—­è¿”å›-1
-            if ((writeSide != null) && (!writeSide.isAlive()) && (--trials < 0)) { //çŠ¶æ€é”™è¯¯
+            if (closedByWriter) {              return -1;        }                 //ÊäÈë¶Ï¹Ø±Õ·µ»Ø-1
+            if ((writeSide != null) && (!writeSide.isAlive()) && (--trials < 0)) { //×´Ì¬´íÎó
                 throw new IOException("Pipe broken");
             }
-            notifyAll();                                                          // ç©ºäº†ï¼Œé€šçŸ¥å†™å…¥ç«¯å¯ä»¥å†™å…¥
+            notifyAll();                                                          // ¿ÕÁË£¬Í¨ÖªĞ´Èë¶Ë¿ÉÒÔĞ´Èë
             try {
                 wait(1000);
             } catch (InterruptedException ex) {
@@ -131,44 +131,44 @@ public class PipedInputStream extends InputStream {
         }
         int ret = buffer[out++] & 0xFF;                                             
         if (out >= buffer.length) {             out = 0;                }
-        if (in == out) {           in = -1;                 }                     //æ²¡æœ‰ä»»ä½•å­—èŠ‚
+        if (in == out) {           in = -1;                 }                     //Ã»ÓĞÈÎºÎ×Ö½Ú
         return ret;
     }
 
     public synchronized int read(byte b[], int off, int len)  throws IOException {
-        if (b == null) {                                                          //æ£€æŸ¥è¾“å…¥å‚æ•°çš„æ­£ç¡®æ€§
+        if (b == null) {                                                          //¼ì²éÊäÈë²ÎÊıµÄÕıÈ·ĞÔ
             throw new NullPointerException();
         } else if (off < 0 || len < 0 || len > b.length - off) {
             throw new IndexOutOfBoundsException();
         } else if (len == 0) {
             return 0;
         }
-        int c = read();                                                                //è¯»å–ä¸‹ä¸€ä¸ª
-        if (c < 0) {    return -1;       }                                             //å·²ç»åˆ°è¾¾æœ«å°¾äº†ï¼Œè¿”å›-1
-        b[off] = (byte) c;                                                             //æ”¾å…¥å¤–éƒ¨bufferä¸­
+        int c = read();                                                                //¶ÁÈ¡ÏÂÒ»¸ö
+        if (c < 0) {    return -1;       }                                             //ÒÑ¾­µ½´ïÄ©Î²ÁË£¬·µ»Ø-1
+        b[off] = (byte) c;                                                             //·ÅÈëÍâ²¿bufferÖĞ
         int rlen = 1;                                                                  //return-len
-        while ((in >= 0) && (--len > 0)) {                                             //ä¸‹ä¸€ä¸ªinå­˜åœ¨ï¼Œä¸”æ²¡æœ‰åˆ°è¾¾len
-            b[off + rlen] = buffer[out++];                                             //ä¾æ¬¡æ”¾å…¥å¤–éƒ¨buffer
+        while ((in >= 0) && (--len > 0)) {                                             //ÏÂÒ»¸öin´æÔÚ£¬ÇÒÃ»ÓĞµ½´ïlen
+            b[off + rlen] = buffer[out++];                                             //ÒÀ´Î·ÅÈëÍâ²¿buffer
             rlen++;
-            if (out >= buffer.length) {         out = 0;           }       Â Â Â Â Â Â Â Â     //è¯»åˆ°bufferçš„æœ«å°¾ï¼Œè¿”å›å¤´éƒ¨
-            if (in == out) {     in = -1;      }                                       //è¯»ã€å†™ä½ç½®ä¸€è‡´æ—¶ï¼Œè¡¨ç¤ºæ²¡æœ‰æ•°æ®
+            if (out >= buffer.length) {         out = 0;           }       ????????    //¶Áµ½bufferµÄÄ©Î²£¬·µ»ØÍ·²¿
+            if (in == out) {     in = -1;      }                                       //¶Á¡¢Ğ´Î»ÖÃÒ»ÖÂÊ±£¬±íÊ¾Ã»ÓĞÊı¾İ
         }
-        return rlen;                                                                   //è¿”å›å¡«å……çš„é•¿åº¦
+        return rlen;                                                                   //·µ»ØÌî³äµÄ³¤¶È
     }
 
-    public synchronized int available() throws IOException {             //è¿”å›è¿˜æœ‰å¤šå°‘å­—èŠ‚å¯ä»¥è¯»å–
+    public synchronized int available() throws IOException {             //·µ»Ø»¹ÓĞ¶àÉÙ×Ö½Ú¿ÉÒÔ¶ÁÈ¡
         if(in < 0)
-            return 0;                                                    //åˆ°è¾¾æœ«ç«¯ï¼Œæ²¡æœ‰å­—èŠ‚
+            return 0;                                                    //µ½´ïÄ©¶Ë£¬Ã»ÓĞ×Ö½Ú
         else if(in == out)
-            return buffer.length;                                        //å†™å…¥çš„å’Œè¯»å‡ºçš„ä¸€è‡´ï¼Œè¡¨ç¤ºæ»¡
+            return buffer.length;                                        //Ğ´ÈëµÄºÍ¶Á³öµÄÒ»ÖÂ£¬±íÊ¾Âú
         else if (in > out)
-            return in - out;                                             //å†™å…¥çš„å¤§äºè¯»å‡º
+            return in - out;                                             //Ğ´ÈëµÄ´óÓÚ¶Á³ö
         else
-            return in + buffer.length - out;                             //å†™å…¥çš„å°äºè¯»å‡ºçš„
+            return in + buffer.length - out;                             //Ğ´ÈëµÄĞ¡ÓÚ¶Á³öµÄ
     }
 
-    public void close()  throws IOException {                            //å…³é—­å½“å‰æµï¼ŒåŒæ—¶é‡Šæ”¾ä¸å…¶ç›¸å…³çš„èµ„æº
-        closedByReader = true;                                           //è¡¨ç¤ºç”±è¾“å…¥æµå…³é—­
-        synchronized (this) {     in = -1;    }                          //åŒæ­¥åŒ–å½“å‰å¯¹è±¡ï¼Œinä¸º-1
+    public void close()  throws IOException {                            //¹Ø±Õµ±Ç°Á÷£¬Í¬Ê±ÊÍ·ÅÓëÆäÏà¹ØµÄ×ÊÔ´
+        closedByReader = true;                                           //±íÊ¾ÓÉÊäÈëÁ÷¹Ø±Õ
+        synchronized (this) {     in = -1;    }                          //Í¬²½»¯µ±Ç°¶ÔÏó£¬inÎª-1
     }
 }

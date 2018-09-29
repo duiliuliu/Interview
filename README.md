@@ -794,6 +794,113 @@ cglib可以对任意类生成代理对象，它的原理是对目标对象进行
     公文审批
 
     ```
+    // 共同抽象处理类
+    public abstract class Handler {
+
+        protected Handler successor ;
+
+        public Handler (Handler successor ){
+            this.successor  = successor ;
+        }
+        
+        public abstract void handleRequest(Request request);
+    }
+
+    // 主任对应的处理类
+    public class DirectorHandler extends Handler {
+
+        private String name = "director";
+
+        public DirectorHandler(Handler successor) {
+            super(successor);
+        }
+
+        @Override
+        public void handleRequest(Request request) {
+            if (request.getlevel() == 1) {
+                System.out.println("\t" + name + " handler the request: \n\t\t" + request.getMsg());
+                return;
+            }
+
+            if (successor != null) {
+                successor.handleRequest(request);
+            }
+        }
+    }
+
+    // 经理对应的处理类
+    public class ManagerHandler extends Handler {
+
+        private String name = "manager";
+
+        public ManagerHandler(Handler successor) {
+            super(successor);
+        }
+
+        @Override
+        public void handleRequest(Request request) {
+            if (request.getlevel() == 2) {
+                System.out.println("\t" + name + " handler the request: \n\t\t" + request.getMsg());
+                return;
+            }
+
+            if (successor != null) {
+                successor.handleRequest(request);
+            }
+        }
+    }
+
+    // 请求类
+    public class Request {
+        private int level;
+        private String msg;
+
+        public Request(int level, String msg) {
+            this.level = level;
+            this.msg = msg;
+        }
+
+        public void setlevel(int level) {
+            this.level = level;
+        }
+
+        public void setMsg(String msg) {
+            this.msg = msg;
+        }
+
+        public int getlevel() {
+            return this.level;
+        }
+
+        public String getMsg() {
+            return this.msg;
+        }
+    }
+
+    // 客户端
+    public class Client {
+
+        public static void main(String[] args) {
+            Handler generalManagerHandler = new GeneralManagerHandler(null);
+            Handler managerHandler = new ManagerHandler(generalManagerHandler);
+            Handler directorHandler = new DirectorHandler(managerHandler);
+
+            Request request1 = new Request(1,
+                    "the request's level is 1 and request body is the person need one day to rest \n");
+            directorHandler.handleRequest(request1);
+
+            Request request2 = new Request(2,
+                    "the request's level is 2 and request body is the person need ten day to rest \n");
+            directorHandler.handleRequest(request2);
+        }
+    }
+
+    // output:
+        director handler the request:
+                the request's level is 1 and request body is the person need one day to rest
+
+        manager handler the request:
+                the request's level is 2 and request body is the person need ten day to rest
 
     ```
 
@@ -1041,7 +1148,7 @@ String res = new String(srtbyte,"UTF-8");
         是字节输入流部分装饰器模式的核心。是我们在装饰器模式中的Decorator对象，主要完成对其它流装饰的基本功能。
 
     
-
+## javaNIO、AIO
 
 ## java反射
 
@@ -1062,7 +1169,7 @@ String res = new String(srtbyte,"UTF-8");
 *   有序性问题
 
 即程序执行的顺序按照代码的先后顺序执行。
-
+ 
 
 #### Synchronized与ReenTrantLock
 
