@@ -907,7 +907,28 @@ cglib可以对任意类生成代理对象，它的原理是对目标对象进行
 
 ## java编程基础
 
-##### String类为什么不可变
+#### hashSet 的遍历
+
+1. 迭代遍历
+
+```
+    Set<String> set = new HashSet<String>();
+    Iterator<String> it = set.iterator();
+    while (it.hasNext()) {
+        String str = it.next();
+        System.out.println(str);
+    }
+```
+
+2. for循环遍历
+
+```
+for (String str : set) {
+      System.out.println(str);
+}
+```
+
+#### String类为什么不可变
 
 ```
 public final class String
@@ -1451,6 +1472,9 @@ Class文件由类装载器装载后，在JVM中将形成一份描述Class结构�
         (c)解析：将符号引用转成直接引用
 
     3. 初始化：对类的静态变量，静态代码块执行初始化操作
+
+        -  as
+        - 
 
 
 * 练习  

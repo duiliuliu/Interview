@@ -25,5 +25,4 @@ public class ManagerHandler extends Handler {
             successor.handleRequest(request);
         }
     }
-
 }
