@@ -1139,6 +1139,8 @@ String res = new String(srtbyte,"UTF-8");
 
 ## java面向对象
 
+## JDBC
+
 ## java集合
 
 #### Java集合Set/List
@@ -1676,17 +1678,21 @@ Class文件由类装载器装载后，在JVM中将形成一份描述Class结构�
     *   非静态内部类持有外部类的引用　context泄露
 
 ## 分布式
+
 ## MySql
 
 #### MyISAM与InnoDB的区别
 
-
-
 ## MongoDB
+
 ## Redis
+
 ## ElasticSearch
+
 ## Python
+
 ## JavaScript
+
 ---
 ---
 
