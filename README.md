@@ -8,18 +8,19 @@
 ### 7. [java编程基础](#java编程基础)
 ### 8. [java面向对象](#java面向对象)
 ### 9. [java集合](#java集合)
-### 10. [javaIO](#javaIO)
-### 11. [javaNIO、AIO](#javaNIO、AIO])
-### 12. [java反射](#java反射)
-### 13. [java并发编程](#java并发编程)
-### 14. [JVM](#JVM)
-### 15. [分布式](#分布式)
-### 16. [MySql](#MySql)
-### 17. [MongoDB](#MongoDB)
-### 18. [Redis](#Redis)
-### 19. [ElasticSearch](#ElasticSearch)
-### 20. [Python](#Python)
-### 21. [JavaScript](#JavaScript)
+### 10. [JDBC](#JDBC)
+### 11. [javaIO](#javaIO)
+### 12. [javaNIO、AIO](#javaNIO、AIO])
+### 13. [java反射](#java反射)
+### 14. [java并发编程](#java并发编程)
+### 15. [JVM](#JVM)
+### 16. [分布式](#分布式)
+### 17. [MySql](#MySql)
+### 18. [MongoDB](#MongoDB)
+### 19. [Redis](#Redis)
+### 20. [ElasticSearch](#ElasticSearch)
+### 21. [Python](#Python)
+### 22. [JavaScript](#JavaScript)
 
 > # 正文
 
@@ -457,24 +458,40 @@ AVL是高度平衡的树，插入删除都需要大量的左旋右旋进行重�
 #### 隔离级别
 事务的隔离级别有四种，隔离级别高的数据库的可靠性高，但并发量低，而隔离级别低的数据库可靠性低，但并发量高，系统开销小
 
+|  |  脏读(dirty read) | 不可重复读(unrepeatable read) | 幻读(phantom read) |
+| ------- | ------- | ------- | ------- |
+| read uncommited | y | y | y |
+| read commited | n | y | y |
+| repearable read | n | n | n |
+| serialable | n | n | n |
+
 1. READ UNCOMMITED 未提交读 **更新的瞬间加 行级共享锁**
 事务还没提交，而别的事务可以看到他其中修改的数据的后果，-->脏读(该事物出错而回滚，其他事物已读到改变的值，发生脏读)。
 2. READ COMMITED 提交读  **对被读取的数据加 行级共享锁 读完释放** **更新的瞬间加 行级排他锁**
 其他事务只能看到已经完成的事务的结果，正在执行的，是无法被其他事务看到的。这种级别会出现读取旧数据的现象。大多数数据库系统的默认隔离级别是READ COMMITTED
 也容易发生丢失更新： 如果A、B同时获取资源X，然后事务A先发起更新记录X，那么事务B将等待事务A完成，然后获得记录X的排他锁，进行更改，这样事务A的更新就会丢失。
 
-    事务A-------------------------------------------事务B <br>
-    读取X=100(同时上共享锁)-----------------读取X=100(同时上共享锁) <br>
-    读取成功(释放共享锁)----------------------读取成功(释放共享锁)<br>
-    UPDATE X=X+100 (上排他锁)--------------	 <br>
-    --------------------------------------------------UPDATING A(等待事务A释放对X的排他锁)<br>
-    事务成功(释放排他锁)X=200 -------------	 <br>
-    --------------------------------------------------UPDATE X=X+200(成功上排他锁)
-                                    事务成功(释放排他锁)X=300<br>
+    |  |  |  |
+    | --- | --- | --- |
+    | 事务A | --- | 事务B |
+    | 读取X=100(同时上共享锁) | --- |读取X=100(同时上共享锁) |
+    | 读取成功(释放共享锁) | ---| 读取成功(释放共享锁) | 
+    |UPDATE X=X+100 (上排他锁) | ---	| |
+    |   | --- | UPDATING A(等待事务A释放对X的排他锁)|
+    | 事务成功(释放排他锁)X=200 | --- |     |
+    |   | --- | UPDATE X=X+200(成功上排他锁) |
+    | (事务A的更新丢失)  | --- | 事务成功(释放排他锁)X=300<br> | 
+    
 3. REPEATBLE COMMITED 可重复读 **对被读取的数据加 行级共享锁 事务结束释放** **更新的瞬间加 行级排他锁**
 事务结束才释放行级共享锁 ，这样保证了可重复读(既是其他的事务职能读取该数据，但是不能更新该数据)。　会导致幻读
 4. SERIALIZABLE 可串行化
 SERIALIZABLE是最高的隔离级别，它通过强制事务串行执行(注意是串行)，避免了前面的幻读情况，由于他大量加上锁(加表锁)，导致大量的请求超时，因此性能会比较底下，再特别需要数据一致性且并发量不需要那么大的时候才可能考虑这个隔离级别
+
+*   期间造的问题
+    *   丢失更新  
+    *   脏读(未提交读) 
+    *   不可重复读   一个事务在自己没有更新数据库数据的情况，同一个查询操作执行两次或多次的结果应该是一致的;如果不一致，就说明为不可重复读。
+    *   幻读  事务A读的时候读出了15条记录，事务B在事务A执行的过程中 增加 了1条，事务A再读的时候就变成了 16 条，这种情况就叫做幻影读。
 
 #### 锁机制
 *   共享锁 (S锁)
@@ -490,12 +507,157 @@ SERIALIZABLE是最高的隔离级别，它通过强制事务串行执行(注意�
 
 因此锁可以分为表级共享锁、行级共享锁、表级排它锁、行级排它锁。
 
-#### 期间造的问题
-*   丢失更新  
-*   脏读(未提交读) 
-*   不可重复读   一个事务在自己没有更新数据库数据的情况，同一个查询操作执行两次或多次的结果应该是一致的;如果不一致，就说明为不可重复读。
-*   幻读  事务A读的时候读出了15条记录，事务B在事务A执行的过程中 增加 了1条，事务A再读的时候就变成了 16 条，这种情况就叫做幻影读。
+#### 存储过程
 
+对于我们常用的关系型数据库，操作数据库的语言一般是SQL，SQL在执行的时候需要先编译,然后执行.
+
+而存储过程(Stored Procedure)是一组为了完成某种特定功能的*SQL语句集*,经编译后存储在数据库中,用户通过存储过程的名字并给定参数(如果需要参数)来调用执行它。
+
+*   创建存储过程
+
+    ```
+    create procedure sp_name
+    @[参数名] [类型],@[参数名] [类型]
+    as
+    begin
+    .........
+    end
+    以上格式还可以简写成：
+    create proc sp_name
+    @[参数名] [类型],@[参数名] [类型]
+    as
+    begin
+    .........
+    end
+    /*注：“sp_name”为需要创建的存储过程的名字，该名字不可以以阿拉伯数字开头*/
+    ```
+
+*   调用存储过程
+
+    基本语法：exec sp_name [参数名]
+
+*   删除存储过程
+
+    1.基本语法：
+    drop procedure sp_name
+
+    2.注意事项
+    (1)不能在一个存储过程中删除另一个存储过程，只能调用另一个存储过程
+
+*   其他常用命令
+
+    1.show procedure status
+    显示数据库中所有存储的存储过程基本信息，包括所属数据库，存储过程名称，创建时间等
+
+    2.show create procedure sp_name
+    显示某一个mysql存储过程的详细信息
+
+    3、exec sp_helptext sp_name
+    显示你这个sp_name这个对象创建文本
+
+#### 索引
+
+索引(index)是帮助数据库高效获取数据的数据结构。
+
+在数据之外，数据库系统维护着满足特定查找算法的数据结构,这些数据结构以某种方式引用(指向)数据,可以在这些数据结构上实现高级查找算法，提高查询速度，这种数据结构，就是索引。
+
+* 索引存储分类(MySql)
+    * B-Tree索引    最常见的索引类型，大部分引擎都支持B树索引。 
+    * Hash索引
+    * R-tree索引(空间索引)  空间索引是MyISAM的一种特殊索引类型，主要用于地理空间数据类型。
+    * Full-text(全文索引)   全文索引也是MyISAM的一种特殊索引类型，主要用于全文索引，InnoDB从MySQL5.6版本提供对全文索引的支持。
+
+* B-tree索引类型
+
+    * 普通索引
+
+        最基本的索引类型，而且它没有唯一性之类的限制，可以通过以下几种方式创建：
+
+        ```
+        //创建索引
+        create index index_name on table_name(col1,col2...)
+
+        //修改表
+        alter table_name add index index_name (col1,col2...)
+
+        //创建表时指定索引
+        create table table_name([...],index index_name (col1,col2...))
+        ```
+    * UNIQUE索引
+
+        唯一索引
+
+        ```
+        关键字为 UNIQUE INDEX
+
+        //创建索引
+        create UNIQUE INDEX index_name on table_name(col1,col2...)
+
+        //修改表
+        alter table_name add UNIQUE INDEX index_name (col1,col2...)
+
+        //创建表时指定索引
+        create table table_name([...],UNIQUE INDEX index_name (col1,col2...))
+        ```
+    * 主键索引
+
+        主键是一种唯一性索引，但它必须指定为“PRIMARY KEY”,不允许null
+
+        ```
+        // 1. 创建表时指定
+        CREATE TABLE 表名( […], PRIMARY KEY (列的列表) );
+        // 2. 修改表时加入
+        ALTER TABLE 表名 ADD PRIMARY KEY (列的列表);
+        ```
+
+* 删除索引
+
+    ```
+    DROP INDEX index_name ON talbe_name
+
+    ALTER TABLE table_name DROP INDEX index_name
+
+    ALTER TABLE table_name DROP PRIMARY KEY
+    ```
+
+* 查看索引
+
+    ```
+    mysql> show index from table_name; 
+    ```
+
+* 设置索引的规则
+
+    1. 较频繁的作为查询条件的字段
+    2. 唯一性太差的字段不适合单独做索引，即使频繁作为查询条件
+    3. 更新非常频繁的字段不适合作为索引
+
+* 索引的弊端
+
+    索引是有代价的：索引文件本身要消耗存储空间，同时索引会加重插入、删除和修改记录时的负担，另外，MySQL在运行时也要消耗资源维护索引，因此索引并不是越多越好。
+
+* 处理重复记录的常用操作
+
+    ```
+    // 查找重复记录
+    select * from table_name where column_name in (select column in table_name group by column having count(column) > 1)
+
+    // 删除重复记录
+    delete ...
+
+    // 查找多个字段重复记录
+    select * from table_name where column_name in (select column_1,column_2 in table_name group by column_1 column_2 having count(*) > 1)
+    ```
+
+#### SQL
+
+* 数据定义：Create Table,Alter Table,Drop Table, Craete/Drop Index
+* 数据操纵：Select ,insert,update,delete
+* 数据控制：grant,revoke
+
+* 内连接/外连接
+
+    - 内连接是保证两个表中的数据要满足连接条件
 
 ## 设计模式
 
@@ -979,6 +1141,14 @@ String res = new String(srtbyte,"UTF-8");
 
 ## java集合
 
+#### Java集合Set/List
+
+* 
+    ![java集合](./images/java集合.png)
+
+
+#### Map
+
 ## javaIO
 
 > https://www.cnblogs.com/Evsward/archive/2017/12/04/io.html
@@ -1141,18 +1311,14 @@ String res = new String(srtbyte,"UTF-8");
                 return n - remaining;                                //返回时要么全部读完，要么因为到达文件末端，读取了部分
             }
 
-
-
             public int available() throws IOException {             //查询流中还有多少可以读取的字节
                 return 0;
             }
 
             public void close() throws IOException {}               //关闭当前流、同时释放与此流相关的资源
                     
-
             public synchronized void mark(int readlimit) {}         //在当前位置对流进行标记，必要的时候可以使用reset方法返回。
 
-                    
             public synchronized void reset() throws IOException {   //对mark过的流进行复位。只有当流支持mark时才可以使用此方法。
                 throw new IOException("mark/reset not supported");
             }
@@ -1170,6 +1336,8 @@ String res = new String(srtbyte,"UTF-8");
 
     
 ## javaNIO、AIO
+
+> https://blog.csdn.net/u011109589/article/details/80333775
 
 ## java反射
 
@@ -1507,7 +1675,18 @@ Class文件由类装载器装载后，在JVM中将形成一份描述Class结构�
     *   static等关键字
     *   非静态内部类持有外部类的引用　context泄露
 
+## 分布式
+## MySql
 
+#### MyISAM与InnoDB的区别
+
+
+
+## MongoDB
+## Redis
+## ElasticSearch
+## Python
+## JavaScript
 ---
 ---
 
