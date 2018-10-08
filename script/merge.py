@@ -10,7 +10,7 @@ def getFileList():
     return files
 
 
-def writeFile():
+def mergeFile():
     fileList = getFileList()
     fileList.sort(key=lambda x: int(x.split('.')[0]))
     menu = []
@@ -34,4 +34,5 @@ def writeFile():
 
 
 if __name__ == '__main__':
-    writeFile()
+    # mergeFile()
+    print('merge')

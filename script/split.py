@@ -6,20 +6,20 @@ import re
 import os
 
 
-def readfile():
+def readFile():
     with open(readmeFile, 'r', encoding=ENCODER) as f:
         return [row for row in f.readlines()]
 
 
-def clearfile():
+def clearFile():
     files = os.listdir(docPath)
     for file in files:
         os.remove(os.path.join(docPath, file))
 
 
-def main():
-    clearfile()
-    rows = readfile()
+def splitFile():
+    clearFile()
+    rows = readFile()
 
     i = 0
     count = 0
@@ -42,4 +42,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # splitFile()
+    print('split')
