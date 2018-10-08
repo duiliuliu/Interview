@@ -1,5 +1,5 @@
-<div class="left-div">
-> # 目录结构
+[TOC]
+# 目录结构
 
 ### [项目经验](#项目经验)
 ### [操作系统](#操作系统)
@@ -23,10 +23,7 @@
 ### [ElasticSearch](#ElasticSearch)
 ### [Python](#Python)
 ### [JavaScript](#JavaScript)
-</div>
 
-
-<div class="right-div">
 > # 正文
 
 ## 项目经验
@@ -1873,5 +1870,3 @@ redis，数据类型，消息队列，过期时间问题
 2. Elastic Search 索引建立
 3. Elastic Search 查询的过程
 4. Elastic Search集群管理、Master选举，节点特性
-
-</div>
