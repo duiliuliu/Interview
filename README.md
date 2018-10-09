@@ -1,4 +1,4 @@
-[网页阅读](https://duiliuliu.github.io/Interview/)
+[阅览](https://duiliuliu.github.io/Interview/)
 
 ># 目录结构
 
