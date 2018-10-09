@@ -1,6 +1,4 @@
-[阅览](https://duiliuliu.github.io/Interview/)
-
-># 目录结构
+> # 目录结构
 
 ### [项目经验](#项目经验)
 ### [操作系统](#操作系统)
@@ -24,7 +22,6 @@
 ### [ElasticSearch](#ElasticSearch)
 ### [Python](#Python)
 ### [JavaScript](#JavaScript)
-
 
 > # 正文
 
@@ -1203,6 +1200,27 @@ cglib可以对任意类生成代理对象，它的原理是对目标对象进行
 
 ## java编程基础
 
+#### java基础数据类型
+
+* 内置数据类型
+
+    八种基本类型。 六种数字类型(四个整形，两个浮点型)，一种字符型，一种布尔型
+
+    一个字节八个位
+
+    | 数据类型 | 大小(字节) | 最小值 | 最大值 | 默认值 | 例子 | 备注
+    | ------  | ------ | ------ | ------ | ------ | ------ |  ------ |  
+    | byte | 1 | 最小值-128(-2^7) | 最大值127(2^7) | 0 | byte a = 100; <br> byte b = -50 | byte 类型用在大型数组中节约空间，主要代替整数，因为 byte 变量占用的空间只有 int 类型的四分之一 |
+    | short | 2 | -2^15 = -32768| 2^15 = 32767 | 0 | short s = 1000; <br> short r = -20000 |
+    | int | 4 | -2^31 | 2^31 | 0 | int a = 1 | 一般地整型变量默认为 int 类型； |
+    | long | 8 | -2^63 | 2^64 | 0L |  long a = 100000L | "L"理论上不分大小写，但是若写成"l"容易与数字"1"混淆，不容易分辩。所以最好大写 |
+    | float | 4 | | | 0.0f | float f1 = 234.5f | float 在储存大型浮点数组的时候可节省内存空间 |
+    | double | 8 | | | 0.0d | double d1 = 123.4 | double类型同样不能表示精确的值，如货币 |
+    | boolean | 1/8,boolean数据类型表示一位的信息 | | | false | boolean one = true | 只有两个取值：true 和 false |
+    | char | 2  char类型是一个单一的 16 位 Unicode 字符 | \u0000（即为0） | \uffff（即为65,535） | | char letter = 'A'| |
+
+* 引用数据类型
+
 #### hashSet 的遍历
 
 1. 迭代遍历
@@ -1274,6 +1292,23 @@ String res = new String(srtbyte,"UTF-8");
 ## java面向对象
 
 ## JDBC
+
+> https://blog.csdn.net/limin0983/article/details/73500035
+
+#### 概念
+
+* JDBC (JAVA DATABASE CONNECTIVITY,JAVA数据库连接)
+
+    是一种用于执行sql语句的java API，可以为多种关系数据库提供统一访问，它由一组用java语言编写的类和接口组成。
+
+* JDBC API支持两层和三层处理模型进行数据库访问，但一般的JDBC体系结构由两层组成：
+    - JDBC  API : 提供了应用程序对JDBC的管理连接
+    - JDBC  Driver API： 支持JDBC管理到驱动连接
+
+        ![JDBC模型](./images/JDBC模型.png)
+    
+
+#### 常用接口
 
 ## java集合
 
@@ -1777,8 +1812,6 @@ Class文件由类装载器装载后，在JVM中将形成一份描述Class结构�
 
     3. 初始化：对类的静态变量，静态代码块执行初始化操作
 
-        -  as
-        - 
 
 
 * 练习  
@@ -1826,6 +1859,12 @@ Class文件由类装载器装载后，在JVM中将形成一份描述Class结构�
 ## Python
 
 ## JavaScript
+
+#### javaScript 读取json
+
+* var obj = eval(str)  
+* var obj = str.parseJSON()         <--->       obj.toJSONString()
+* var obj = JSON.parse(str)         <--->       JSON.stringify(obj)
 
 ---
 ---

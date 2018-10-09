@@ -30,9 +30,9 @@ def mergeFile():
         for file in fileList:
             f.write('## {}\n'.format(file.split(' ')[1].replace(SUFFIX, '')))
             file = docPath + file
-            f.write(open(file, 'r', encoding=ENCODER).read())
+            f.write(open(file, 'r', encoding=ENCODER).read().replace(
+                "../images", "./images"))
 
 
 if __name__ == '__main__':
-    # mergeFile()
-    print('merge')
+    mergeFile()
