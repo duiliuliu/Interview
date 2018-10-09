@@ -77,7 +77,7 @@ var BlogDirectory = {
         divNavBar.appendChild(divNavBarTab);
         var h2 = document.createElement('H2');
         divNavBarTab.appendChild(h2);
-        var txt = document.createTextNode('目录导航');
+        var txt = document.createTextNode('目录');
         h2.appendChild(txt);
         var divNavBarContents = document.createElement('DIV');
         // divNavBarContents.style.display = 'none';
