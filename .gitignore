@@ -3,3 +3,5 @@
 # scripts/__pycache__
 /script/__pycache__
 
+# vscode setting
+.vscode/launch.json

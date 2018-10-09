@@ -15,6 +15,7 @@ def mergeFile():
     fileList.sort(key=lambda x: int(x.split('.')[0]))
     menu = []
 
+    menu.append('[阅览](https://duiliuliu.github.io/Interview/)\n\n')
     menu.append('> # 目录结构\n\n')
     for file in fileList:
         file = file.split(' ')[1]
