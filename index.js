@@ -15,7 +15,7 @@ var BlogDirectory = {
         var scrollBarPosition = document.body.scrollTop || document.documentElement.scrollTop;
         return  scrollBarPosition;
     },
-    
+
     moveScrollBar:function(finalpos, interval) {
 
         if(!window.scrollTo) {
