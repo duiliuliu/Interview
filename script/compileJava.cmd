@@ -13,7 +13,7 @@ if exist "%cd%\test" ( set projectPath=%cd% ) else (
     cd %currentPath%\..
 )
 set projectPath=%cd%
-set srcPath=%projectPath%\test\src
+set srcPath=%projectPath%\test\src\com
 set binPath=%projectPath%\test\bin
 
 
@@ -28,7 +28,8 @@ set javaFile=%~1
 @rem -------------------------------------------------------------------------
 for /R %srcPath% %%i in (.) do (
     if exist "%%i\%javaFile%.java" ( 
-        javac -d %binPath% %%i\%javaFile%.java 
+        javac -d %binPath% -cp %binPath% %%i\%javaFile%.java 
+        echo compile %%i\%javaFile%.java successful
     )
 )
 
