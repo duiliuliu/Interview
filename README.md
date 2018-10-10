@@ -1,3 +1,5 @@
+[阅览](https://duiliuliu.github.io/Interview/)
+
 > # 目录结构
 
 ### [项目经验](#项目经验)
@@ -22,6 +24,8 @@
 ### [ElasticSearch](#ElasticSearch)
 ### [Python](#Python)
 ### [JavaScript](#JavaScript)
+### [Shell](#Shell)
+### [Spring](#Spring)
 
 > # 正文
 
@@ -1512,6 +1516,36 @@ String res = new String(srtbyte,"UTF-8");
 
 ## java反射
 
+#### 概念
+
+* 反射机制
+
+    反射是一种间接操作目标对象的机制。在程序运行时或者能够获取对象的信息，只要给定类的名字，就可以通过反射获取类的信息。
+
+* 作用
+    
+    1. 在运行时判断任意一个对象所属的类
+    2. 在运行时判断任意一个对象所具有的成员变量和方法
+    3. 在运行时任意调用一个对象的方法
+    4. 在运行时构造任意一个类的对象
+
+* 优点
+
+    动态编译：运行时确定类型，绑定对象。动态编译较大限度的发挥了Java的灵活性，体现了多态的应用，有利于降低类之间的耦合性。
+
+* 缺点
+
+    不利于封装
+
+#### Class.forName和classloader区别
+
+Java中Class.forName和classloader都可以对类进行加载。
+
+不过Class.forName()除了将.class文件加载到JVM中之外，还会对类进行解释，*执行类中的static块*;而classloader只会做一件事，就是加载.class文件到JVM中，不会执行static中的内容，只有在newInstance时才会去执行static块。
+
+
+
+* 反射能够获取类的所有信息吗？
 ## java并发编程
 
 #### 三个并发编程概念
@@ -1911,3 +1945,12 @@ redis，数据类型，消息队列，过期时间问题
 2. Elastic Search 索引建立
 3. Elastic Search 查询的过程
 4. Elastic Search集群管理、Master选举，节点特性
+
+
+## Shell
+
+
+## Spring
+ 
+
+ 

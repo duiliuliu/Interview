@@ -1,5 +1,5 @@
 @rem =========================================================================
-@rem С�ű�
+@rem quick start script
 @rem author: pengr 
 @rem -------------------------------------------------------------------------
 @echo off
@@ -21,19 +21,27 @@ if %command% == merge (
 ) else if %command% == compile (
     call compileJava %~2
     cd ..
-) else if %command% == startJava (
+) else if %command% == start (
     call startJava %~2
     cd ..
 ) else if %command% == -h (
-    echo -- merge \n\t �ϲ�./doc�ļ��µ������ĵ�
-    echo -- split \n\t ���readme�ĵ�
-    echo -- compile \n\t ����Java�ļ�
-    echo -- startJava \n\t ����Java����
+    echo    -- merge ^
+
+        "Merge files in doc directory"
+    echo    -- split ^
+
+        "Split readme file"
+    echo    -- compile ^
+
+        "Compile java code"
+    echo    -- startJava ^
+
+        "Run java code"
     cd ..
 )
 
 :End
 @rem ---------------------------------------------------------------------
-@rem ����
+@rem end command
 @rem ---------------------------------------------------------------------
 goto :EOF

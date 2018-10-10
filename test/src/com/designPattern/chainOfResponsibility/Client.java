@@ -2,6 +2,11 @@ package com.designPattern.chainOfResponsibility;
 
 /**
  * Client
+ * 
+ * Connecting objects that can handle the same kind of requests into a chain
+ * gives them the opportunity to process requests, and requests are passed along
+ * the chain. So as to avoid the coupling relationship between the sender and
+ * the receiver of the request.
  */
 public class Client {
 

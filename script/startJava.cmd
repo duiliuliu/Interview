@@ -1,13 +1,14 @@
 @rem =========================================================================
-@rem 编译java程序，如果编译成功则运行
+@rem Run java program
 @rem author: pengr 
 @rem -------------------------------------------------------------------------
 @echo off
 
 
 @rem -------------------------------------------------------------------------
-@rem 初始化变量
+@rem initialize variable
 @rem -------------------------------------------------------------------------
+setlocal enabledelayedexpansion
 set currentPath=%cd%
 if exist "%cd%\test" ( set projectPath=%cd% ) else (
     cd %currentPath%\..
@@ -24,18 +25,25 @@ if "%~1" EQU "" (
 set javaFile=%~1
 
 @rem -------------------------------------------------------------------------
-@rem 进行运行
+@rem Finding file and Running
 @rem -------------------------------------------------------------------------
-for /R %srcPath% %%i in (.) do (
-    if exist "%%i\%javaFile%.java" ( 
-        javac -d %binPath% %%i\%javaFile%.java 
+for /R %binPath% %%i in (.) do (
+    if exist "%%i\%javaFile%.class" ( 
+        set "str=%%i"
+        set "filePath=!str:~0,-1!"
+        set "filePath=!filePath:%binPath%\=!"
+        set "filePath=!filePath:\=.!"
+        cd %binPath%
+        java !filePath!%javaFile%
+        goto End
     )
 )
+echo run %javaFile%.class failure, javaFile not found!
 
 
 :End
 @rem ---------------------------------------------------------------------
-@rem 结束
+@rem end Running
 @rem ---------------------------------------------------------------------
 cd %currentPath%
 goto :EOF
