@@ -26,6 +26,7 @@
 - [JavaScript](#JavaScript)
 - [Shell](#Shell)
 - [Spring](#Spring)
+- [面试题](#面试题)
 - [其他](#其他)
 
 > # 正文
@@ -1404,8 +1405,121 @@ String res = new String(srtbyte,"UTF-8");
 #### Java 集合 Set/List
 
 - ![java集合](./images/java集合.png)
+- ArrayList
+- LinkedList
 
 #### Map
+
+- HashMap
+
+  HashMap 是基于哈希表的 map 接口的非同步实现
+  简单说就是数组+链表构成
+  在 HashMap 初始化的时候会初始化一个 Entry[]数组，用来存储 key、value 对，当需要存储一个 Entry 对象，会经过 hash 算法来确定数组中的位置，产生冲突后，从头部插入当前 entry 对象，原有 Entry 链串接其后。
+
+  HashMap 允许 null 值 null 键，键具有唯一性，所以允许一个 null 键，而值就无所谓了。相比较 HashTable，HashTable 不允许 null 值 null 键，null 值与 null 键都会抛出 NullPointException。
+
+  HashMap 的初始容量为 16，之后以当前容量的 2 倍进行扩充。其容量始终为 2 的 n 次幂，目的是为了提高 hash 算法确定位置时的效率，通常得到 hashcode 会对当前容量进行取模运算得到散列表中存储位置，而除法运算相对效率较低，容量设置为 2 的 n 次幂便可以通过位运算快速得到模，具体位运算为 hash 与 当前容量-1 进行与运算。
+  而 HashTable 的初始容量为 11，之后的扩容变为原来的 2N+1,取模运算哪儿运用除法，效率低。
+
+  HashMap 实现了 Iterable，HashTable 实现了 Iterable 与 Enumration(历史遗留问题)
+
+  HashMap 不保证存储顺序，LinkedHashMap 保证存储顺序，其内部实现了双向链表以保证顺序
+
+  HashMap 是线程不安全的，如果要线程安全，可以选择 HashTable、collections.synchronizedHashMap()包装或 concurrentHashMap,推荐 concurrentHashMap。因为内部实现为分段加锁，效率较高。
+
+  构造函数
+  HashMap()
+  HashMap(int capacity)
+  HashMap(int capacity, float loadFactory)
+  HashMap(Map<? extends K, ?extends V> map)
+  继承自 abstractMap 类，实现 Map 接口
+
+  hash()
+  在 get、put 计算下标时，先对 hashCode 进行 hash 操作，然后再通过 hash 值进一步操作.
+
+  > 高 16bit 和低 16bit 异或了一下。设计者还解释到因为现在大多数的 hashCode 的分布已经很不错了，就算是发生了碰撞也用 O(logn)的 tree 去做了。仅仅异或一下，既减少了系统的开销，也不会造成因为高位没有参与下标的计算(table 长度比较小)时，引起的碰撞。
+
+        ```
+        static final int hash(Object key) {
+            int h;
+            return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+        }
+        ```
+
+  indexFor(int h, int length)
+  目前的 table 长度 n 为 2 的次幂，所以计算下标的时候，可使用按位与&代替取模%：
+
+        ```
+        return h & (length-1);
+        ```
+
+  get()
+  获取 key 对应的 value
+  传入参数 key
+  通过 key 的 hash 码计算出数组中的位置
+  判断是否有值，有的话进行遍历(链表)
+  判断值返回
+
+        ```
+        public V get(Object key) {
+            if (key == null)
+                return getForNullKey();
+
+            int hash = hash(key);
+
+            for (Entry<K,V> e = table[indexFor(hash, table.length)];
+                e != null;
+                e = e.next) {
+                Object k;
+                if (e.hash == hash && ((k = e.key) == key || key.equals(k)))
+                    return e.value;
+            }
+            return null;
+        }
+        ```
+
+  java8 中链表长度大于 8 时，则转化为红黑树存储
+
+        ```
+        public V get(Object key) {
+            Node<K,V> e;
+            return (e = getNode(hash(key), key)) == null ? null : e.value;
+        }
+
+        final Node<K,V> getNode(int hash, Object key) {
+            Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
+            // table不为空 && table长度大于0 && table索引位置(根据hash值计算出)不为空
+            if ((tab = table) != null && (n = tab.length) > 0 &&
+                (first = tab[(n - 1) & hash]) != null) {
+                if (first.hash == hash && // always check first node
+                    ((k = first.key) == key || (key != null && key.equals(k))))
+                    return first;	// first的key等于传入的key则返回first对象
+                if ((e = first.next) != null) { // 向下遍历
+                    if (first instanceof TreeNode)  // 判断是否为TreeNode
+                        // 如果是红黑树节点，则调用红黑树的查找目标节点方法getTreeNode
+                        return ((TreeNode<K,V>)first).getTreeNode(hash, key);
+                    // 走到这代表节点为链表节点
+                    do { // 向下遍历链表, 直至找到节点的key和传入的key相等时,返回该节点
+                        if (e.hash == hash &&
+                            ((k = e.key) == key || (key != null && key.equals(k))))
+                            return e;
+                    } while ((e = e.next) != null);
+                }
+            }
+            return null;    // 找不到符合的返回空
+        }
+        ```
+
+  put()
+  校验 table 是否为空或者 length 为 0，是的话则调用 resize 进行初始化
+  通过**hash 值计算索引位置**，将该索引位置的头节点赋值给 p 节点，如果该索引位置节点为空则使用传入的参数新增一个节点并放在该索引位置
+  判断 p 节点的 key 和 hash 值是否跟传入的相等，如果相等, 则 p 节点即为要查找的目标节点，将 p 节点赋值给 e 节点
+  如果 p 节点不是目标节点，则**判断 p 节点是否为 TreeNode**，如果是则调用红黑树的 putTreeVal 方法 查找目标节点
+  走到这代表 p 节点为普通链表节点，则调用普通的链表方法进行查找，并定义变量 binCount 来统计该链表的节点数
+  如果 p 的 next 节点为空时，则代表找不到目标节点，则新增一个节点并插入链表尾部，并校验节点数是否超过 8 个，如果超过则调用 treeifyBin 方法（见下文代码块 6）将链表节点转为红黑树节点
+  如果遍历的 e 节点存在 hash 值和 key 值都与传入的相同，则 e 节点即为目标节点，跳出循环
+  如果 e 节点不为空，则**代表目标节点存在**，使用传入的 value 覆盖该节点的 value，并返回**oldValue**
+  如果插入节点后节点数超过阈值，则调用 resize 方法（见下文 resize 方法）进行扩容
 
 
 ## javaIO
@@ -2086,6 +2200,10 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
 
 ## Python
 
+- 解决 python 循环引用的方法
+  - 延迟导入
+  - 将 from xxx import yyy 改为 import xxx;xxx.yyy 来访问的形式
+  - 组织代码，将循环变为单向
 
 
 ## JavaScript
@@ -2104,6 +2222,35 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
 ## Spring
 
 > https://blog.csdn.net/hrbeuwhw/article/details/79476988
+
+#### Spring AOP
+
+- 切面（Advisor）：是 AOP 中的一个术语，表示从业务逻辑中分离出来的横切逻辑，比如性能监控，日志记录，权限控制等。
+  这些功能都可以从核心的业务逻辑中抽离出去。可以解决代码耦合问题，职责更加单一。封装了增强和切点。
+- 增强（Advice）：增强代码的功能的类，横切到代码中。
+- 目标：目标方法（JDK 代理）或目标类（CGLIB 代理）
+- 代理：JDK 代理，CGLIB 代理。或是通过 ProxyFactory 类生产。
+- 切点：通过一个条件来匹配要拦截的类，这个条件称为切点。如拦截所有带 Controller 注解的类。增强的条件。
+
+连接点：作为增强方法的入参，可以获取到目标方法的信息
+
+Spring AOP 原理---动态代理
+
+spring 的动态代理实现有两种：
+jdk 的动态代理 (目标对象的实现类实现了接口)
+cglib 动态代理 (目标对象的实现类没有实现接口) (通过实现修改字节码来实现)
+
+jdk 动态代理实现的核心类库为 java.lang.reflect.Proxy 类与 java.lang.reflect.InvocationHandler 接口
+
+动态代理的实现为实现 InvocationHandler 接口(invoke(Object o, Method m))，再通过反射接收代理类。
+实际代理类继承了 Proxy 类，并实现了 ISubject 接口，由此也可以看到 JDK 动态代理为什么需要实现接口，已经继承了 Proxy 是不能再继承其余类了。
+
+其中实现了 ISubject 的 execute() 方法，并通过 InvocationHandler 中的 invoke() 方法来进行调用的。
+
+CGLIB 动态代理
+cglib 是对一个小而快的字节码处理框架 ASM 的封装。 他的特点是继承于被代理类，这就要求被代理类不能被 final 修饰。
+
+#### 例题
 
 - 有哪些不同类型的 IOC（依赖注入）方式
 
@@ -2137,16 +2284,45 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
   Spring 框架中的单例 bean 不是线程安全的
 
 
+## 面试题
+
+#### 海量数据排序
+
+> https://blog.csdn.net/yusiguyuan/article/details/12903975
+
+#### 浏览器中输入 www.taobao.com 发生了什么
+
+#### LRU 算法实现
+
+LRU 全称是 Least Recently Used，即最近最久未使用的意思。
+
+LRU 算法的设计原则是：如果一个数据在最近一段时间没有被访问到，那么在将来它被访问的可能性也很小。也就是说，当限定的空间已存满数据时，应当把最久没有被访问到的数据淘汰。
+
+1.  数组+时间计数
+    每访问一次数据，相应的时间计数归零，其他数据时间计数加一，当数组空间已满时，将时间计数最大的数据项淘汰。
+2.  链表实现
+    每次插入新的数据都选择从头部插入，如果数据已存在，则将数据移到头部；那么当链表满的时候，就将链表尾部的数据丢弃。
+3.  链表和 hashmap
+    当需要插入新的数据项的时候，如果新数据项在链表中存在（一般称为命中），则把该节点移到链表头部，如果不存在，则新建一个节点，放到链表头部，若缓存满了，则把链表最后一个节点删除即可。在访问数据的时候，如果数据项在链表中存在，则把该节点移到链表头部，否则返回-1。这样一来在链表尾部的节点就是最近最久未访问的数据项。(LinkedHashMap)
+
+#### 设计一个秒杀系统
+
+1. 前端层面，必须提到浏览器缓存、尽可能减少请求数量、使用延迟加载（ajax 技术）、使用 cdn 缓存、压缩静态文件等；
+
+2. web 服务器层面，必须提到开启 gzip 压缩技术、卸载 web 服务器不必要的模块、开启服务器缓存等；
+
+3. PHP 语言层面，开启编译缓存、使用 PHP 扩展实现计算密集型模块、使用 HHVM 或 PHP7 替代旧版本 PHP、修改 php.ini 参数对 PHP 性能调优、减少高消耗函数使用等；
+
+4. 数据库 MySQL 层面，合理创建索引、合理设计数据表结构、尽可能减少数据库连接、对数据库内常用数据进行缓存、读写分离、垂直（水平）分库分表等；
+
+5. 非关系型数据库，使用非关系数据库减少数据库链接、保持数据库与非关系数据库数据一致性等
+
+
 ## 其他
 
 ---
 ---
 
-> 海量数据排序
-> https://blog.csdn.net/yusiguyuan/article/details/12903975
-
-java 中原子类
-阻塞队列
 js 中闭包
 python 闭包
 
@@ -2162,7 +2338,7 @@ redis，数据类型，消息队列，过期时间问题
 
 问了一下流量控制，还是很隐晦，当时大概问的是“一个服务器有很多 TCP 连接，然后某一时刻他可能来不及处理接受到的数据，这时候该怎么办？”。坦白说刚开始听到我是比较懵 B 的，但是仔细想过之后发现这好像就是流量控制，所以很流利的回答了流量控制，顺道说了一下原理。
 
-3. 开始了算法，先问我二叉树学过吗，然后让我设计一个节点，再然后让我比较两棵树是否相同(手写代码)。现在我才明白，大概是在考我用递归怎么遍历树，我当时写的居然是以按层遍历的方式去遍历树，然后两棵树逐个节点作对比。
+1. 开始了算法，先问我二叉树学过吗，然后让我设计一个节点，再然后让我比较两棵树是否相同(手写代码)。现在我才明白，大概是在考我用递归怎么遍历树，我当时写的居然是以按层遍历的方式去遍历树，然后两棵树逐个节点作对比。
 
 死锁，死锁预防，死锁避免，死锁检测
 
