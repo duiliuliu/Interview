@@ -1775,7 +1775,7 @@ Java 中 Class.forName 和 classloader 都可以对类进行加载。
 
     **synchronized锁住的是代码还是对象？**
 
-        synchronized锁住的是对象，同一个对象中的方法在此访问时，并不会申请锁，而是计数加一，所以synchronized是可重入锁。
+        synchronized锁住的是对象，同一个对象中的方法再次访问时，并不会申请锁，而是计数加一，所以synchronized是可重入锁。
 
 2. ReentrantLock
 
@@ -1983,7 +1983,7 @@ CAS 算法是由硬件直接支持来保证原子性的，有三个操作数：�
 
 - 运行期间 Mark Word 里的数据随着标志位的变化而变化。Mark Word 可能存储一下四种数据：
 
-  ![Mark Word 数据类型](./images/Mark Word 数据类型.png)
+  ![Mark Word 数据类型](./images/MarkWord数据类型.png)
 
 #### 锁的优化策略
 
