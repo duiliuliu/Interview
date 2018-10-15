@@ -31,10 +31,10 @@ if %command% == merge (
     echo    -- split ^
 
         "Split readme file"
-    echo    -- compile ^
+    echo    -- compile xxx ^
 
         "Compile java code"
-    echo    -- startJava ^
+    echo    -- start xxx ^
 
         "Run java code"
     cd ..
