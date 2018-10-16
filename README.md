@@ -619,16 +619,16 @@ AVL 是高度平衡的树，插入删除都需要大量的左旋右旋进行重�
     其他事务只能看到已经完成的事务的结果，正在执行的，是无法被其他事务看到的。这种级别会出现读取旧数据的现象。大多数数据库系统的默认隔离级别是 READ COMMITTED
     也容易发生丢失更新： 如果 A、B 同时获取资源 X，然后事务 A 先发起更新记录 X，那么事务 B 将等待事务 A 完成，然后获得记录 X 的排他锁，进行更改，这样事务 A 的更新就会丢失。
 
-        |  |  |  |
-        | --- | --- | --- |
-        | 事务A | --- | 事务B |
-        | 读取X=100(同时上共享锁) | --- |读取X=100(同时上共享锁) |
-        | 读取成功(释放共享锁) | ---| 读取成功(释放共享锁) |
-        |UPDATE X=X+100 (上排他锁) | ---	| |
-        |   | --- | UPDATING A(等待事务A释放对X的排他锁)|
-        | 事务成功(释放排他锁)X=200 | --- |     |
-        |   | --- | UPDATE X=X+200(成功上排他锁) |
-        | (事务A的更新丢失)  | --- | 事务成功(释放排他锁)X=300<br> |
+    |                           |     |                                          |
+    | ------------------------- | --- | ---------------------------------------- |
+    | 事务 A                    | --- | 事务 B                                   |
+    | 读取 X=100(同时上共享锁)  | --- | 读取 X=100(同时上共享锁)                 |
+    | 读取成功(释放共享锁)      | --- | 读取成功(释放共享锁)                     |
+    | UPDATE X=X+100 (上排他锁) | --- |                                          |
+    |                           | --- | UPDATING A(等待事务 A 释放对 X 的排他锁) |
+    | 事务成功(释放排他锁)X=200 | --- |                                          |
+    |                           | --- | UPDATE X=X+200(成功上排他锁)             |
+    | (事务 A 的更新丢失)       | --- | 事务成功(释放排他锁)X=300<br>            |
 
 3.  REPEATBLE COMMITED 可重复读 **对被读取的数据加 行级共享锁 事务结束释放** **更新的瞬间加 行级排他锁**
     事务结束才释放行级共享锁 ，这样保证了可重复读(既是其他的事务职能读取该数据，但是不能更新该数据)。　会导致幻读
@@ -1759,51 +1759,6 @@ Java 中 Class.forName 和 classloader 都可以对类进行加载。
 
 即程序执行的顺序按照代码的先后顺序执行。
 
-#### Synchronized 与 ReenTrantLock
-
-两者较大的区别是，synchronized 是 JVM 层面的锁;而 ReenTrantLock 是 jdk 提供的 API 层面的互斥锁，需要 lock()和 unlock()方法配合 try/finally 语句块来完成。
-
-1. Synchronized
-
-   Synchronized 通过编译，会在同步块的前后分别形成 monitorenter 和 monitorexit 这两个字节码指令。执行 monitorenter 指令时，首先要尝试获取对象锁。如果这个对象没被锁定，或者当前线程已经拥有了那个对象锁，把锁的计算器加一，相应的，在执行 monitorexit 指令时会将锁计算器减一，当计算器为零时，所就释放了。
-
-
-    每个对象有一个监视器锁(monitor)。当monitor被占用时就会处于锁定状态，线程执行monitorenter指令时尝试获取monitor的所有权，过程如下：
-    *    1. 如果monitor的进入数为0，则该线程进入monitor，然后将进入数设置为1，该线程即为monitor的所有者。
-    *    2. 如果线程已经占有该monitor，只是重新进入，则进入monitor的进入数加1.
-    *    3. ’如果其他线程已经占用了monitor，则该线程进入阻塞状态，直到monitor的进入数为0，再重新尝试获取monitor的所有权。
-
-    **synchronized锁住的是代码还是对象？**
-
-        synchronized锁住的是对象，同一个对象中的方法再次访问时，并不会申请锁，而是计数加一，所以synchronized是可重入锁。
-
-2. ReentrantLock
-
-   ReentrantLock 是 java.util.concurrent 包下提供的一套互斥锁，相比 Synchronized，ReentrantLock 类提供了一些高级功能，主要有以下 3 项：
-
-   - 1. 等待可中断，持有锁的线程长期不释放的时候，正在等待的线程可以选择放弃等待，这相当于 Synchronized 来说可以避免出现死锁的情况。
-   - 2. 公平锁，多个线程等待同一个锁时，必须按照申请锁的时间顺序获得锁，Synchronized 锁非公平锁，ReentrantLock 默认的构造函数是创建的非公平锁，可以通过参数 true 设为公平锁，但公平锁表现的性能不是很好。
-   - 3. 锁绑定多个条件，一个 ReentrantLock 对象可以同时绑定对个对象。
-   - 4. 常见 api
-        <br>isFair() //判断锁是否是公平锁
-        　　 <br>isLocked() //判断锁是否被任何线程获取了
-        　　 <br>isHeldByCurrentThread() //判断锁是否被当前线程获取了
-        　　 <br>hasQueuedThreads() //判断是否有线程在等待该锁
-
-
-    ```
-    private Lock lock=new ReentrantLock();
-    public void run() {
-        lock.lock();
-        try{
-            for(int i=0;i<5;i++)
-                System.out.println(Thread.currentThread().getName()+":"+i);
-        }finally{
-            lock.unlock();
-        }
-    }
-    ```
-
 #### 缓存一致性
 
 解决缓存不一致的问题：
@@ -1815,68 +1770,6 @@ Java 中 Class.forName 和 classloader 都可以对类进行加载。
 2. 通过缓存一致性协议
 
    最出名的就是 Intel 的 MESI 协议，MESI 协议保证了每个缓存中使用的共享变量的副本是一致的。它核心的思想是：当 CPU 写数据时，如果发现操作的变量是共享变量，即在其他 CPU 中也存在该变量的副本，会发出信号通知其他 CPU 将该变量的缓存行置为无效状态，因此当其他 CPU 需要读取这个变量时，发现自己缓存中缓存该变量的缓存行是无效的，那么它就会从内存重新读取。
-
-#### volatile 关键字
-
-1. 保证了不同线程对这个变量进行操作时的可见性，即一个线程修改了某个变量的值，这新值对其他线程来说是立即可见的。
-2. 禁止进行指令重排序。
-
-但是并不能保证 **原子性**,即：i 用 volatile 修饰,1000 个线程调 i++,结果并不一定 1000.因为自增操作不具备原子性，它包括读取变量的原始值、进行加一操作、写入内存。那么就是说自增操作的三个子操作可能会分割执行。
-
-#### Java 原子类
-
-在 java 1.5 的 java.util.concurrent.atomic 包下提供了一些原子操作类，即对基本数据类型的 自增(加 1 操作)，自减(减 1 操作)、以及加法操作(加一个数)，减法操作(减一个数)进行了封装，保证这些操作是原子性操作。atomic 是利用 CAS 来实现原子性操作的(Compare And Swap)，CAS 实际上是利用处理器提供的 CMPXCHG 指令实现的，而处理器执行 CMPXCHG 指令是一个原子性操作。
-
-    AtomicBoolean
-    AtomicInteger
-    AtomicIntegerArray
-    AtomicIntegerFieldUpdater
-    AtomicLong
-    AtomicLongArray
-    AtomicLongFieldUpdater
-    AtomicMarkableReference
-    AtomicReference
-    AtomicReferenceArray
-    AtomicReferenceFieldUpdater
-    AtomicStampedReference
-    DoubleAccumulator
-    DoubleAdder
-    LongAccumulator
-    LongAdder
-
-- 实现原理
-
-  ```
-  /**
-      * Atomically increments by one the current value.
-      *
-      * @return the updated value
-      */
-      public final int incrementAndGet() {
-          for (;;) {
-              int current = get();
-              int next = current + 1;
-              if (compareAndSet(current, next))
-                  return next;
-          }
-      }
-  ```
-
-1. 先获取当前的 value 值
-2. 对 value 加一
-3. 第三步是关键步骤，调用 compareAndSet 方法来来进行原子更新操作，这个方法的语义是：
-
-   (CAS)
-
-   先检查当前 value 是否等于 current，如果相等，则意味着 value 没被其他线程修改过，更新并返回 true。如果不相等，compareAndSet 则会返回 false，然后循环继续尝试更新。
-
-#### CAS(Compare-and-Swap)
-
-CAS 算法是由硬件直接支持来保证原子性的，有三个操作数：内存位置 V、旧的预期值 A 和新值 B，当且仅当 V 符合预期值 A 时，CAS 用新值 B 原子化地更新 V 的值，否则，它什么都不做。
-
-- CAS 的 ABA 问题
-
-  当然 CAS 也并不完美，它存在"ABA"问题，假若一个变量初次读取是 A，在 compare 阶段依然是 A，但其实可能在此过程中，它先被改为 B，再被改回 A，而 CAS 是无法意识到这个问题的。CAS 只关注了比较前后的值是否改变，而无法清楚在此过程中变量的变更明细，这就是所谓的 ABA 漏洞。
 
 #### 锁相关概念
 
@@ -1963,29 +1856,326 @@ CAS 算法是由硬件直接支持来保证原子性的，有三个操作数：�
 
       当需要更新时,判断内存值(公共)与旧的预期值(之前取的值)是否相等,若相等，则没有被其他线程修改过，使用新值进行更新，否则进行重试,一般情况下是一个自旋，即不断的重试。
 
-#### 偏向锁、轻量级锁、重量级锁
+#### CAS(Compare-and-Swap)
 
-- java 对象头
+CAS 算法是由硬件直接支持来保证原子性的，有三个操作数：内存位置 V、旧的预期值 A 和新值 B，当且仅当 V 符合预期值 A 时，CAS 用新值 B 原子化地更新 V 的值，否则，它什么都不做。
 
-| 长度     | 内容                   | 说明                         |
-| -------- | ---------------------- | ---------------------------- |
-| 32/64bit | Mark Word              | 存储对象 hashcode 或锁信息等 |
-| 32/64bit | Class Metadata Address | 存储到对象类型数据的指针     |
-| 32/64bit | Array Length           | 数组的长度(如果对象是数组)   |
+- CAS 的 ABA 问题
 
-- Java 对象头里的 Mark Word 里默认存储对象的 HashCode，分代年龄和锁标记。
+  当然 CAS 也并不完美，它存在"ABA"问题，假若一个变量初次读取是 A，在 compare 阶段依然是 A，但其实可能在此过程中，它先被改为 B，再被改回 A，而 CAS 是无法意识到这个问题的。CAS 只关注了比较前后的值是否改变，而无法清楚在此过程中变量的变更明细，这就是所谓的 ABA 漏洞。
 
-  32 位 JVM 的 Mark Word 的默认存储结构如下：
+#### volatile 关键字
 
-  |          | 25bit           | 4bit         | 1bit(是否偏向锁) | 2bit 锁标记位 |
-  | -------- | --------------- | ------------ | ---------------- | ------------- |
-  | 无锁状态 | 对象的 hashcode | 对象分代年龄 | 0                | 01            |
+1. 保证了不同线程对这个变量进行操作时的可见性，即一个线程修改了某个变量的值，这新值对其他线程来说是立即可见的。
+2. 禁止进行指令重排序。
 
-- 运行期间 Mark Word 里的数据随着标志位的变化而变化。Mark Word 可能存储一下四种数据：
+但是并不能保证 **原子性**,即：i 用 volatile 修饰,1000 个线程调 i++,结果并不一定 1000.因为自增操作不具备原子性，它包括读取变量的原始值、进行加一操作、写入内存。那么就是说自增操作的三个子操作可能会分割执行。
 
-  ![Mark Word 数据类型](./images/MarkWord数据类型.png)
+#### Synchronized
 
-#### 锁的优化策略
+synchronized 是 jvm 层面的锁，是 Java 的内置特性
+在 jvm 层面实现对临界资源的互斥访问，不可响应中断
+锁的释放有虚拟机完成,不用人工干预。这既是缺点又是优点.优点是不用担心死锁,缺点是有可能获取到锁的线程阻塞之后其他线程会一直等待,性能不高
+非公平锁
+可重入锁
+
+- 使用
+
+  - 修饰实例方法,对当前实例加锁,进入同步代码前要获得当前实例的锁
+
+    ```
+    public synchronized void method(){
+        try{
+            Thread.sleep();
+            System.out.println("synchronized method");
+        }catch(InterruptedException e){
+            e.printStackTrace();
+        }
+    }
+    ```
+
+  - 修饰静态方法,对当前类加锁,进入同步代码前要获得类对象的锁
+
+    ```
+    public static synchronized void method1(){
+        try {
+            System.out.println("static synchronized method");
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+    ```
+
+  - 修饰代码块，指定加锁对象，对指定对象加锁，进入同步代码块前要获得指定对象的锁
+
+    ```
+    public void method1(){
+        try {
+            synchronized (this) {
+                System.out.println("synchronized block method");
+                Thread.sleep(3000);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+    ```
+
+- 实现原理
+
+  > https://blog.csdn.net/wu1226419614/article/details/73740899
+
+  > https://blog.csdn.net/qq_37532186/article/details/79728231
+
+  > https://blog.csdn.net/javazejian/article/details/72828483
+
+  synchronized 可以保证变量的原子性/可见性/顺序性.并且是一个可重入锁
+
+  - 字节码层面
+
+    synchronized 是基于进入和退出管程(Monitor)对象实现(monitorEntor 和 monitorExit),monitorEnter 指令插入同步代码开始位置，monitorExit 指令插入到同步代码结束位置。任何一个对象都有一个 monitor 与之相关联，当一个线程处于 monitor 之后，它将处于锁定状态
+
+    ![Synchronized字节码](./images/Synchronized字节码.png)
+
+  - synchronized 的优化
+
+    synchronized 在 jdk1.6 之前是重量级锁,在 jdk1.6 之后对 synchronized 做了优化，加入了偏向锁、轻量级锁、锁粗化、锁消除、适应性自旋等操作，大大增加了 synchronized 的效率
+
+    - java 对象头
+
+      | 长度     | 内容                   | 说明                         |
+      | -------- | ---------------------- | ---------------------------- |
+      | 32/64bit | Mark Word              | 存储对象 hashcode 或锁信息等 |
+      | 32/64bit | Class Metadata Address | 存储到对象类型数据的指针     |
+      | 32/64bit | Array Length           | 数组的长度(如果对象是数组)   |
+
+    - Java 对象头里的 Mark Word 里默认存储对象的 HashCode，分代年龄和锁标记。
+
+      32 位 JVM 的 Mark Word 的默认存储结构如下：
+
+      |          | 25bit           | 4bit         | 1bit(是否偏向锁) | 2bit 锁标记位 |
+      | -------- | --------------- | ------------ | ---------------- | ------------- |
+      | 无锁状态 | 对象的 hashcode | 对象分代年龄 | 0                | 01            |
+
+    - 运行期间 Mark Word 里的数据随着标志位的变化而变化。Mark Word 可能存储一下四种数据：
+
+      ![Mark Word 数据类型](./images/MarkWord数据类型.png)
+
+      当一个线程获取对象并加锁后，标志位从 01 变为 10，其他线程则处于排队状态。
+
+      ![线程请求模型](./images/线程请求模型.png)
+
+
+    - 偏向锁
+
+      - 目的：为了在无线程竞争情况下，减少不必要的轻量级锁操作.因为轻量级锁的加锁解锁操作需要依赖多次的CAS原子操作。
+
+      - 核心思想： 如果一个线程获取了锁,那么锁就进入偏向模式，此时MarkWordd的结构也变为锁偏向结构,当这个线程再次请求锁时，无需再申请锁.
+
+      - 场景： 无其他线程竞争
+
+      - 加锁流程：
+        1.  检测MarkWord是否为可偏向状态,即是否为偏向锁1，锁标志为是否为01
+        2.  若为可偏向锁，则检测线程id是否为当前线程id。
+          -  如果是则执行同步代码
+          -  如果不是，则通过CAS操作竞争锁
+              -  如果竞争成功，则将MarkWord的线程id替换为当前线程ID
+              -  如果竞争不成功，则CAS竞争失败，证明当前存在多线程竞争情况，这时候需要锁膨胀为轻量级锁，才能保证线程间公平竞争锁。
+      - 解锁
+
+        当有另一个线程来竞争锁的时候，就不能再使用偏向锁了，要膨胀为轻量级锁。
+
+        竞争线程尝试 CAS 更新对象头失败，会等待到全局安全点（此时不会执行任何代码）撤销偏向锁。
+
+      ![偏向锁简易模型](./images/偏向锁简易模型.png)
+      ![偏向锁加锁解锁模型](./images/偏向锁加锁解锁模型.png)
+
+    - 轻量级锁
+
+      - 目的： 在多线程竞争的情况下，减少传统的重量级锁使用操作系统互斥量产生的性能消耗
+
+      - 场景： 线程交替执行同步块的场合
+
+      - 加锁流程：
+        1.  判断当前对象是否处于无锁状态(hashcode,o,01)
+            - 如果是，JVM将在当前线程的栈帧中建立一个名为锁记录(Lock Record)的空间，用于存储当前锁对象markword的拷贝(Displaced Mark Word)
+            - 如果不是，执行步骤3
+        2.  JVM利用CAS操作尝试将对象的Mark Word更新为指向锁记录(Lock Record)的指针,
+            - 如果成功，则表示竞争到锁,更新锁标志位为00(轻量级锁),执行同步操作
+            - 如果失败，则进行步骤3
+        3.  判断当前对象的Mark Word是否指向当前线程的栈帧,
+            - 如果是，则表示当前线程已经持有当前对象的锁,直接进行同步代码
+            - 否则说明对象是被其他线程所抢占,这是轻量级锁需要膨胀为重量级锁,锁标志位变为10,后面等待的线程将进入阻塞状态。
+
+      - 解锁
+
+        用CAS操作锁置为无锁状态（偏向锁位为”0”，锁标识位为”01”），若CAS操作失败则是出现了竞争，锁已膨胀为重量级锁了，此时需要释放锁（持有重量级锁线程的指针位为”0”，锁标识位为”10”）并唤醒重量锁的线程。
+
+      ![轻量级锁加锁解锁模型](./images/轻量级锁加锁解锁模型.png)
+
+    - 自旋锁(自适应锁)
+
+      轻量级锁失败后，虚拟机为了避免线程真实地在操作系统层面挂起，还会进行一项称为自旋锁的优化手段。这是基于在大多数情况下，线程持有锁的时间都不会太长，如果直接挂起操作系统层面的线程可能会得不偿失，毕竟操作系统实现线程之间的切换时需要从用户态转换到核心态，这个状态之间的转换需要相对比较长的时间，时间成本相对较高，因此自旋锁会假设在不久将来，当前的线程可以获得锁，因此虚拟机会让当前想要获取锁的线程做几个空循环(这也是称为自旋的原因)，一般不会太久，可能是50个循环或100循环，在经过若干次循环后，如果得到锁，就顺利进入临界区。如果还不能获得锁，那就会将线程在操作系统层面挂起，这就是自旋锁的优化方式，这种方式确实也是可以提升效率的。最后没办法也就只能升级为重量级锁了。
+
+
+    - 重量级锁
+
+      线程阻塞和唤醒都需要CPU从用户态转为核心态.
+      让cpu通过操作系统指令,去调度多线程之间,谁执行代码，谁进行阻塞.这样会频繁出现程序运行状态的切换.会大量消耗资源
+
+    - 锁粗化
+
+      锁粗化的概念应该比较好理解，就是将多次连接在一起的加锁、解锁操作合并为一次，将多个连续的锁扩展成一个范围更大的锁。
+
+      ```
+      public class StringBufferTest {
+          StringBuffer stringBuffer = new StringBuffer();
+
+          public void append(){
+              stringBuffer.append("a");
+              stringBuffer.append("b");
+              stringBuffer.append("c");
+          }
+      }
+      ```
+
+      这里每次调用stringBuffer.append方法都需要加锁和解锁，如果虚拟机检测到有一系列连串的对同一个对象加锁和解锁操作，就会将其合并成一次范围更大的加锁和解锁操作，即在第一次append方法时进行加锁，最后一次append方法结束后进行解锁。
+
+    - 锁消除
+
+      锁消除即删除不必要的加锁操作。根据代码逃逸技术，如果判断到一段代码中，堆上的数据不会逃逸出当前线程，那么可以认为这段代码是线程安全的，不必要加锁。看下面这段程序：
+
+      ```
+      public class SynchronizedTest02 {
+
+          public static void main(String[] args) {
+              SynchronizedTest02 test02 = new SynchronizedTest02();
+              //启动预热
+              for (int i = 0; i < 10000; i++) {
+                  i++;
+              }
+              long start = System.currentTimeMillis();
+              for (int i = 0; i < 100000000; i++) {
+                  test02.append("abc", "def");
+              }
+              System.out.println("Time=" + (System.currentTimeMillis() - start));
+          }
+
+          public void append(String str1, String str2) {
+              StringBuffer sb = new StringBuffer();
+              sb.append(str1).append(str2);
+          }
+      }
+      ```
+
+      虽然StringBuffer的append是一个同步方法，但是这段程序中的StringBuffer属于一个局部变量，并且不会从该方法中逃逸出去，所以其实这过程是线程安全的，可以将锁消除
+
+    - 对比
+
+      |   锁   | 优点          | 缺点       | 场景 |
+      | -------- | --------------- | ------------ | ---------------- |
+      | <br>偏向锁<br><br> | 加锁和解锁不需要额外的x消耗,和非同步方法相比仅存在纳秒级的差距 | 如果线程间存在锁竞争，会增加额外的锁撤销消耗 | 只有一个线程访问同步块的场景  |
+      | <br>轻量级锁<br><br> | 竞争的线程不用阻塞，提高了程序的响应速度 | 如果始终得不到锁竞争的线程会进入自旋消耗CPU | 追求响应速度,同步快执行速度非常快  |
+      | <br>重量级锁<br><br> | 线程竞争不使用自旋，不消耗CPU | 线程阻塞，响应时间缓慢 | 追求吞吐量，同步块执行速度较长  |
+
+#### Synchronized 与 ReenTrantLock
+
+两者较大的区别是，synchronized 是 JVM 层面的锁;而 ReenTrantLock 是 jdk 提供的 API 层面的互斥锁，需要 lock()和 unlock()方法配合 try/finally 语句块来完成。
+
+1. Synchronized
+
+   Synchronized 通过编译，会在同步块的前后分别形成 monitorenter 和 monitorexit 这两个字节码指令。执行 monitorenter 指令时，首先要尝试获取对象锁。如果这个对象没被锁定，或者当前线程已经拥有了那个对象锁，把锁的计算器加一，相应的，在执行 monitorexit 指令时会将锁计算器减一，当计算器为零时，所就释放了。
+
+
+    每个对象有一个监视器锁(monitor)。当monitor被占用时就会处于锁定状态，线程执行monitorenter指令时尝试获取monitor的所有权，过程如下：
+    *    1. 如果monitor的进入数为0，则该线程进入monitor，然后将进入数设置为1，该线程即为monitor的所有者。
+    *    2. 如果线程已经占有该monitor，只是重新进入，则进入monitor的进入数加1.
+    *    3. ’如果其他线程已经占用了monitor，则该线程进入阻塞状态，直到monitor的进入数为0，再重新尝试获取monitor的所有权。
+
+    **synchronized锁住的是代码还是对象？**
+
+        synchronized锁住的是对象，同一个对象中的方法在此访问时，并不会申请锁，而是计数加一，所以synchronized是可重入锁。
+
+2. ReentrantLock
+
+   ReentrantLock 是 java.util.concurrent 包下提供的一套互斥锁，相比 Synchronized，ReentrantLock 类提供了一些高级功能，主要有以下 3 项：
+
+   - 1. 等待可中断，持有锁的线程长期不释放的时候，正在等待的线程可以选择放弃等待，这相当于 Synchronized 来说可以避免出现死锁的情况。
+   - 2. 公平锁，多个线程等待同一个锁时，必须按照申请锁的时间顺序获得锁，Synchronized 锁非公平锁，ReentrantLock 默认的构造函数是创建的非公平锁，可以通过参数 true 设为公平锁，但公平锁表现的性能不是很好。
+   - 3. 锁绑定多个条件，一个 ReentrantLock 对象可以同时绑定对个对象。
+   - 4. 常见 api
+        <br>isFair() //判断锁是否是公平锁
+        　　 <br>isLocked() //判断锁是否被任何线程获取了
+        　　 <br>isHeldByCurrentThread() //判断锁是否被当前线程获取了
+        　　 <br>hasQueuedThreads() //判断是否有线程在等待该锁
+
+
+    ```
+    private Lock lock=new ReentrantLock();
+    public void run() {
+        lock.lock();
+        try{
+            for(int i=0;i<5;i++)
+                System.out.println(Thread.currentThread().getName()+":"+i);
+        }finally{
+            lock.unlock();
+        }
+    }
+    ```
+
+#### Java 原子类
+
+在 java 1.5 的 java.util.concurrent.atomic 包下提供了一些原子操作类，即对基本数据类型的 自增(加 1 操作)，自减(减 1 操作)、以及加法操作(加一个数)，减法操作(减一个数)进行了封装，保证这些操作是原子性操作。atomic 是利用 CAS 来实现原子性操作的(Compare And Swap)，CAS 实际上是利用处理器提供的 CMPXCHG 指令实现的，而处理器执行 CMPXCHG 指令是一个原子性操作。
+
+    AtomicBoolean
+    AtomicInteger
+    AtomicIntegerArray
+    AtomicIntegerFieldUpdater
+    AtomicLong
+    AtomicLongArray
+    AtomicLongFieldUpdater
+    AtomicMarkableReference
+    AtomicReference
+    AtomicReferenceArray
+    AtomicReferenceFieldUpdater
+    AtomicStampedReference
+    DoubleAccumulator
+    DoubleAdder
+    LongAccumulator
+    LongAdder
+
+- 实现原理
+
+  ```
+  /**
+      * Atomically increments by one the current value.
+      *
+      * @return the updated value
+      */
+      public final int incrementAndGet() {
+          for (;;) {
+              int current = get();
+              int next = current + 1;
+              if (compareAndSet(current, next))
+                  return next;
+          }
+      }
+  ```
+
+1. 先获取当前的 value 值
+2. 对 value 加一
+3. 第三步是关键步骤，调用 compareAndSet 方法来来进行原子更新操作，这个方法的语义是：
+
+   (CAS)
+
+   先检查当前 value 是否等于 current，如果相等，则意味着 value 没被其他线程修改过，更新并返回 true。如果不相等，compareAndSet 则会返回 false，然后循环继续尝试更新。
+
+#### 线程中断与 synchronized
+
+> https://github.com/duiliuliu/Interview/tree/master/test/src/com/thread/threadInterrupt
+
+> https://blog.csdn.net/javazejian/article/details/72828483#%E7%BA%BF%E7%A8%8B%E4%B8%AD%E6%96%AD%E4%B8%8Esynchronized
 
 #### java 线程通信
 
@@ -2166,10 +2356,77 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
   5. 当使用 jdk1.7 动态语言支持时，如果一个 java.lang.invoke.MethodHandle 实例最后的解析结果 REF_getstatic,REF_putstatic,REF_invokeStatic 的方法句柄，并且这个方法句柄所对应的类没有进行初始化，则需要先出触发其初始化。
 
   - 注意，对于这五种会触发类进行初始化的场景，虚拟机规范中使用了一个很强烈的限定语：“有且只有”，这五种场景中的行为称为对一个类进行*主动引用*。除此之外，所有引用类的方式，都不会触发初始化，称为*被动引用*
+  - 被动引用的几种经典场景
 
-* 类的实例化
+    > https://github.com/duiliuliu/Interview/tree/master/test/src/com/javaBasic/classInitial
 
-* 练习
+    - 通过子类引用父类的静态字段
+
+      ```
+      // PassiveReferenceParent
+      public class PassiveReferenceParent {
+          static {
+              System.out.println("This is static block in the PassiveReferenceParent Class .");
+          }
+      }
+
+      // PassiveReferenceSon_1
+      public class PassiveReferenceSon_1 extends PassiveReferenceParent {
+          static {
+              System.out.println("This is static block in the PassiveReferenceSon_1 Class .");
+          }
+
+          public static String value = "PassiveReferenceSon_1_static_feild value";
+
+          public PassiveReferenceSon_1() {
+              System.out.println("PassiveReferenceSon_1 class init!");
+          }
+      }
+
+      // PassiveReferenceSon_2
+      public class PassiveReferenceSon_2 extends PassiveReferenceSon_1 {
+          static {
+              System.out.println("This is static block in the PassiveReferenceSon_2 Class .");
+          }
+
+          public PassiveReferenceSon_2() {
+              System.out.println("PassiveReferenceSon_2 class init!");
+          }
+      }
+
+      public static void main(String[] args) {
+          System.out.println(PassiveReferenceSon_2.value);
+      }
+
+      // output:
+        This is static block in the PassiveReferenceParent Class .
+        This is static block in the PassiveReferenceSon_1 Class .
+        PassiveReferenceSon_1_static_feild value
+      ```
+
+      对于静态字段，只有直接定义这个字段的类才会被初始化，因此通过其子类来引用父类中定义的静态字段，只会触发父类的初始化而不会触发子类的初始化。在本例中，由于 value 字段是在类 PassiveReferenceSon_1 中定义的，因此该类会被初始化；此外，在初始化类 PassiveReferenceSon_1 时，虚拟机会发现其父类 PassiveReferenceParent 还未被初始化，因此虚拟机将先初始化父类 PassiveReferenceParent PassiveReferenceSon_1，而 PassiveReferenceSon_2 始终不会被初始化。
+
+    - 通过数组定义来引用类，不会触发此类的初始化
+
+      ```
+      PassiveReferenceSon_1[] passiveReferenceSons_1 = new PassiveReferenceSon_1[10];
+      ```
+
+      上述案例运行之后并没有任何输出，说明虚拟机并没有初始化类 PassiveReferenceSon_1[com.javaBasic.classInitial.PassiveReference.PassiveReferenceSon_1 的类的初始化。从类名称我们可以看出，这个类代表了元素类型为 PassiveReferenceSon_1 的一维数组，它是由虚拟机自动生成的，直接继承于 Object 的子类，创建动作由字节码指令 newarray 触发。
+
+    - 常量在编译阶段会存入调用类的常量池中，本质上并没有直接引用到定义常量的类，因此不会触发定义常量的类的初始化
+
+      ```
+      System.out.println(PassiveReferenceParent.CONSTANT);
+      // output:
+      hello world
+      ```
+
+      述代码运行之后，只输出 “hello world”，这是因为虽然在 Java 源码中引用了 PassiveReferenceParent 类中的常量 CONSTANT，但是编译阶段将此常量的值“hello world”存储到了 NotInitialization 常量池中，对常量 PassiveReferenceParent.CONSTANT 的引用实际都被转化为 NotInitialization 类对自身常量池的引用了。也就是说，实际上 NotInitialization 的 Class 文件之中并没有 PassiveReferenceParent 类的符号引用入口，这两个类在编译为 Class 文件之后就不存在关系了。
+
+- 类的实例化
+
+- 练习
 
   **java new 一个对象后创建了几个对象**
 

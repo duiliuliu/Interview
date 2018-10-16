@@ -1,12 +1,16 @@
-package com.Thread;
+package com.thread.threadCommunication;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
  * TestThread
+ * 
+ * Threads execute sequentially.
+ * 
+ * Three threads, each with a sequential print threadName, such as ABCABCABC...
  */
-public class TestThread {
+public class ThreadOrderExecute {
 
     public static void main(String[] args) {
         int max = 10;
