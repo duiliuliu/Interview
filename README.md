@@ -1316,6 +1316,10 @@ String res = new String(srtbyte,"UTF-8");
 
 多态就是依赖运行期动态加载和动态链接这个特点实现的
 
+#### 多态
+
+#### 接口与抽象类
+
 
 ## JDBC
 
@@ -1761,6 +1765,8 @@ Java 中 Class.forName 和 classloader 都可以对类进行加载。
 
 #### 缓存一致性
 
+>http://ifeve.com/volatile/
+
 解决缓存不一致的问题：
 
 1. 通过在总线加 LOCK#锁的方式
@@ -1769,7 +1775,7 @@ Java 中 Class.forName 和 classloader 都可以对类进行加载。
 
 2. 通过缓存一致性协议
 
-   最出名的就是 Intel 的 MESI 协议，MESI 协议保证了每个缓存中使用的共享变量的副本是一致的。它核心的思想是：当 CPU 写数据时，如果发现操作的变量是共享变量，即在其他 CPU 中也存在该变量的副本，会发出信号通知其他 CPU 将该变量的缓存行置为无效状态，因此当其他 CPU 需要读取这个变量时，发现自己缓存中缓存该变量的缓存行是无效的，那么它就会从内存重新读取。
+   最出名的就是 Intel 的 MESI 协议，MESI 协议保证了每个缓存中使用的共享变量的副本是一致的。它核心的思想是：当 CPU 写数据时，如果发现操作的变量是共享变量，即在其他 CPU 中也存在该变量的副本，会发出信号通知（广播）其他 CPU 将该变量的缓存行置为无效状态，因此当其他 CPU 需要读取这个变量时，发现自己缓存中缓存该变量的缓存行是无效的，那么它就会从内存重新读取。
 
 #### 锁相关概念
 
@@ -1866,10 +1872,30 @@ CAS 算法是由硬件直接支持来保证原子性的，有三个操作数：�
 
 #### volatile 关键字
 
+> http://ifeve.com/volatile/
+
 1. 保证了不同线程对这个变量进行操作时的可见性，即一个线程修改了某个变量的值，这新值对其他线程来说是立即可见的。
 2. 禁止进行指令重排序。
 
 但是并不能保证 **原子性**,即：i 用 volatile 修饰,1000 个线程调 i++,结果并不一定 1000.因为自增操作不具备原子性，它包括读取变量的原始值、进行加一操作、写入内存。那么就是说自增操作的三个子操作可能会分割执行。
+
+volatile实现原理依赖与缓存一致性协议(MESI)([缓存一致性](#缓存一致性))
+
+
+当CPU写数据时，如果发现操作的变量是共享变量，即在其他CPU中也存在该变量的副本，会发出信号通知其他CPU将该变量的缓存行置为无效状态，因此当其他CPU需要读取这个变量时，发现自己缓存中缓存该变量的缓存行是无效的，那么它就会从内存中重新读取。
+
+在jvm中所有变量都存在主存中，每个线程都有自己的工作内存，也就是说，当多个线程访问一个共享变量时，每个线程在自己的工作内存中会有这个共享变量的副本。当某个线程更改了自己工作内存中的数据后，不一定会立刻将更新后的数据立刻写入到内存中去(线程阻塞或其他原因)。而如果对申明了volatile关键字的Java变量进行写操作，JVM就会向处理器发送一条Lock前缀的指令，将这个变量所在的缓冲行的数据写回到系统内存中。但是就算写回内存，如果其他处理器缓存的还是旧的，再执行计算操作就会有问题(读旧数据问题)，所以在多处理机下，为了保证各个处理器分缓冲是一致的，就会实现缓存一致性协议，每个处理器通过嗅探在总线上传播的数据来检查自己缓存的值是否过期了，当处理器发现自己缓存行*对应的地址*被修改，就会将当前处理器的缓存行设置为无效状态，当处理器要对这个数据进行修改时，就会强制重新从内存中把数据读到处理器缓存里。
+
+例子：
+
+```
+https://blog.csdn.net/SummerMangoZz/article/details/75098773?utm_source=blogxgwz0
+```
+
+
+happens-before
+> http://www.importnew.com/23520.html
+
 
 #### Synchronized
 
@@ -2073,11 +2099,15 @@ synchronized 是 jvm 层面的锁，是 Java 的内置特性
 
     - 对比
 
-      |   锁   | 优点          | 缺点       | 场景 |
-      | -------- | --------------- | ------------ | ---------------- |
-      | <br>偏向锁<br><br> | 加锁和解锁不需要额外的x消耗,和非同步方法相比仅存在纳秒级的差距 | 如果线程间存在锁竞争，会增加额外的锁撤销消耗 | 只有一个线程访问同步块的场景  |
-      | <br>轻量级锁<br><br> | 竞争的线程不用阻塞，提高了程序的响应速度 | 如果始终得不到锁竞争的线程会进入自旋消耗CPU | 追求响应速度,同步快执行速度非常快  |
-      | <br>重量级锁<br><br> | 线程竞争不使用自旋，不消耗CPU | 线程阻塞，响应时间缓慢 | 追求吞吐量，同步块执行速度较长  |
+      | 锁                   | 优点                                                           | 缺点                                         | 场景                              |
+      | -------------------- | -------------------------------------------------------------- | -------------------------------------------- | --------------------------------- |
+      | <br>偏向锁<br><br>   | 加锁和解锁不需要额外的x消耗,和非同步方法相比仅存在纳秒级的差距 | 如果线程间存在锁竞争，会增加额外的锁撤销消耗 | 只有一个线程访问同步块的场景      |
+      | <br>轻量级锁<br><br> | 竞争的线程不用阻塞，提高了程序的响应速度                       | 如果始终得不到锁竞争的线程会进入自旋消耗CPU  | 追求响应速度,同步快执行速度非常快 |
+      | <br>重量级锁<br><br> | 线程竞争不使用自旋，不消耗CPU                                  | 线程阻塞，响应时间缓慢                       | 追求吞吐量，同步块执行速度较长    |
+
+#### Lock
+
+> https://www.cnblogs.com/aishangJava/p/6555291.html
 
 #### Synchronized 与 ReenTrantLock
 
@@ -2248,6 +2278,72 @@ java.util.concurrent.Executors 工厂类可以创建四种类型的线程池，�
     1. 工作线程会从 DelayQueue 中取出已经到期的任务去执行
     2. 执行结束后重新设置任务的到期时间，再次放回 DelayQueue。
 
+#### ThreadLocal
+
+ThreadLocal 是线程的局部变量，是每个线程独有的。
+
+用来应对 为创建代价高昂的对象获取线程安全的方法，比如用来解决 数据库连接、Session 管理等。
+
+这些对象进行不断的创建销毁会对系统造成很大的消耗，而且在多线程情况下，每个线程对比如数据库连接进行加锁会造成很大的执行效率的降低。当 ThreadLoacl 为每个线程维护一个变量副本，即多个线程访问的共享变量的各自的副本，并不会产生线程安全问题，而且因为是自己内存中的变量副本，也不会影响执行性能。
+
+不过，ThreadLoacl 由于在每个线程中都创建了副本，所以要考虑他对资源的消耗，比如内存的占用会比不使用 ThreadLocal 要大
+
+public T get() { }
+public void set(T value) { }
+public void remove() { }
+protected T initialValue() { }
+
+get()方法是用来获取 ThreadLocal 在当前线程中保存的变量副本
+set()用来设置当前线程中变量的副本
+remove()用来移除当前线程中变量的副本
+initialValue()是一个 protected 方法，一般是用来在使用时进行重写的，它是一个延迟加载方法
+
+```
+public class ThreadLocal<T> {
+     ...
+    public void set(T value) {
+        Thread t = Thread.currentThread();
+        ThreadLocalMap map = getMap(t);
+        if (map != null)
+            map.set(this, value);
+        else
+            createMap(t, value);
+    }
+
+    ThreadLocalMap getMap(Thread t) {
+        return t.threadLocals;
+    }
+
+    void createMap(Thread t, T firstValue) {
+        t.threadLocals = new ThreadLocalMap(this, firstValue);
+    }
+
+        ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
+            table = new Entry[INITIAL_CAPACITY];
+            int i = firstKey.threadLocalHashCode & (INITIAL_CAPACITY - 1);
+            table[i] = new Entry(firstKey, firstValue);
+            size = 1;
+            setThreshold(INITIAL_CAPACITY);
+        }
+  ...
+}
+```
+
+- ThreadLocal 的 set 方法:
+  获取当前线程
+  利用当前线程作为句柄，获取一个 ThreadLocalMap 的对象
+  如果上述 ThreadLoacalMap 不为空，则设置值；否则，初始化 ThreadLocalMap 并设置值。
+
+在 get 前需要 set，否则 throw nullpointexception;
+
+- 原理：
+  Thread 里面有一个 ThreadLoacals 成员变量，是 ThreadLocalMap 类型的，key 为 ThreadLocal 实例对象
+  当 ThreadLocal 类 set()时，首先获取当前线程的 ThreadLocalMap 对象(为 null 则初始化一个)，然后以 ThreadLocal 对象为 key，设置 value。get()类似
+  ThreadLocal.set() 到线程中的对象是该线程自己使用的对象，其他线程是不需要访问的，也访问不到的。当线程终止后，这些值会作为垃圾回收。
+
+会造成内存泄漏(key 为 null 的 Entry)
+threadlocal 里面使用了一个存在弱引用的 map,当释放掉 threadlocal 的强引用以后,map 里面的 value 却没有被回收.而这块 value 永远不会被访问到了. 所以存在着内存泄露. 最好的做法是将调用 threadlocal 的 remove 方法.
+
 #### 例题
 
 - 并行计算
@@ -2355,74 +2451,99 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
 
   5. 当使用 jdk1.7 动态语言支持时，如果一个 java.lang.invoke.MethodHandle 实例最后的解析结果 REF_getstatic,REF_putstatic,REF_invokeStatic 的方法句柄，并且这个方法句柄所对应的类没有进行初始化，则需要先出触发其初始化。
 
-  - 注意，对于这五种会触发类进行初始化的场景，虚拟机规范中使用了一个很强烈的限定语：“有且只有”，这五种场景中的行为称为对一个类进行*主动引用*。除此之外，所有引用类的方式，都不会触发初始化，称为*被动引用*
-  - 被动引用的几种经典场景
 
-    > https://github.com/duiliuliu/Interview/tree/master/test/src/com/javaBasic/classInitial
+            JVM初始化步骤
+            1、假如这个类还没有被加载和连接，则程序先加载并连接该类
+            2、假如该类的直接父类还没有被初始化，则先初始化其直接父类
+            3、假如类中有初始化语句，则系统依次执行这些初始化语句
 
-    - 通过子类引用父类的静态字段
+            类初始化时机：只有当对类的主动使用的时候才会导致类的初始化，类的主动使用包括以下六种：
+            – 创建类的实例，也就是 new 的方式
+            – 访问某个类或接口的静态变量，或者对该静态变量赋值
+            – 调用类的静态方法
+            – 反射（如 Class.forName(“com.shengsiyuan.Test”)）
+            – 初始化某个类的子类，则其父类也会被初始化
+            – Java 虚拟机启动时被标明为启动类的类（Java Test），直接使用 java.exe 命令来运行某个主类
 
-      ```
-      // PassiveReferenceParent
-      public class PassiveReferenceParent {
-          static {
-              System.out.println("This is static block in the PassiveReferenceParent Class .");
-          }
-      }
+- 注意，对于这五种会触发类进行初始化的场景，虚拟机规范中使用了一个很强烈的限定语：“有且只有”，这五种场景中的行为称为对一个类进行*主动引用*。除此之外，所有引用类的方式，都不会触发初始化，称为*被动引用*
+- 被动引用的几种经典场景
 
-      // PassiveReferenceSon_1
-      public class PassiveReferenceSon_1 extends PassiveReferenceParent {
-          static {
-              System.out.println("This is static block in the PassiveReferenceSon_1 Class .");
-          }
+  > https://github.com/duiliuliu/Interview/tree/master/test/src/com/javaBasic/classInitial
 
-          public static String value = "PassiveReferenceSon_1_static_feild value";
+  - 通过子类引用父类的静态字段
 
-          public PassiveReferenceSon_1() {
-              System.out.println("PassiveReferenceSon_1 class init!");
-          }
-      }
+    ```
+    // PassiveReferenceParent
+    public class PassiveReferenceParent {
+        static {
+            System.out.println("This is static block in the PassiveReferenceParent Class .");
+        }
+    }
 
-      // PassiveReferenceSon_2
-      public class PassiveReferenceSon_2 extends PassiveReferenceSon_1 {
-          static {
-              System.out.println("This is static block in the PassiveReferenceSon_2 Class .");
-          }
+    // PassiveReferenceSon_1
+    public class PassiveReferenceSon_1 extends PassiveReferenceParent {
+        static {
+            System.out.println("This is static block in the PassiveReferenceSon_1 Class .");
+        }
 
-          public PassiveReferenceSon_2() {
-              System.out.println("PassiveReferenceSon_2 class init!");
-          }
-      }
+        public static String value = "PassiveReferenceSon_1_static_feild value";
 
-      public static void main(String[] args) {
-          System.out.println(PassiveReferenceSon_2.value);
-      }
+        public PassiveReferenceSon_1() {
+            System.out.println("PassiveReferenceSon_1 class init!");
+        }
+    }
 
-      // output:
-        This is static block in the PassiveReferenceParent Class .
-        This is static block in the PassiveReferenceSon_1 Class .
-        PassiveReferenceSon_1_static_feild value
-      ```
+    // PassiveReferenceSon_2
+    public class PassiveReferenceSon_2 extends PassiveReferenceSon_1 {
+        static {
+            System.out.println("This is static block in the PassiveReferenceSon_2 Class .");
+        }
 
-      对于静态字段，只有直接定义这个字段的类才会被初始化，因此通过其子类来引用父类中定义的静态字段，只会触发父类的初始化而不会触发子类的初始化。在本例中，由于 value 字段是在类 PassiveReferenceSon_1 中定义的，因此该类会被初始化；此外，在初始化类 PassiveReferenceSon_1 时，虚拟机会发现其父类 PassiveReferenceParent 还未被初始化，因此虚拟机将先初始化父类 PassiveReferenceParent PassiveReferenceSon_1，而 PassiveReferenceSon_2 始终不会被初始化。
+        public PassiveReferenceSon_2() {
+            System.out.println("PassiveReferenceSon_2 class init!");
+        }
+    }
 
-    - 通过数组定义来引用类，不会触发此类的初始化
+    public static void main(String[] args) {
+        System.out.println(PassiveReferenceSon_2.value);
+    }
 
-      ```
-      PassiveReferenceSon_1[] passiveReferenceSons_1 = new PassiveReferenceSon_1[10];
-      ```
+    // output:
+      This is static block in the PassiveReferenceParent Class .
+      This is static block in the PassiveReferenceSon_1 Class .
+      PassiveReferenceSon_1_static_feild value
+    ```
 
-      上述案例运行之后并没有任何输出，说明虚拟机并没有初始化类 PassiveReferenceSon_1[com.javaBasic.classInitial.PassiveReference.PassiveReferenceSon_1 的类的初始化。从类名称我们可以看出，这个类代表了元素类型为 PassiveReferenceSon_1 的一维数组，它是由虚拟机自动生成的，直接继承于 Object 的子类，创建动作由字节码指令 newarray 触发。
+    对于静态字段，只有直接定义这个字段的类才会被初始化，因此通过其子类来引用父类中定义的静态字段，只会触发父类的初始化而不会触发子类的初始化。在本例中，由于 value 字段是在类 PassiveReferenceSon_1 中定义的，因此该类会被初始化；此外，在初始化类 PassiveReferenceSon_1 时，虚拟机会发现其父类 PassiveReferenceParent 还未被初始化，因此虚拟机将先初始化父类 PassiveReferenceParent PassiveReferenceSon_1，而 PassiveReferenceSon_2 始终不会被初始化。
 
-    - 常量在编译阶段会存入调用类的常量池中，本质上并没有直接引用到定义常量的类，因此不会触发定义常量的类的初始化
+  - 通过数组定义来引用类，不会触发此类的初始化
 
-      ```
-      System.out.println(PassiveReferenceParent.CONSTANT);
-      // output:
-      hello world
-      ```
+    ```
+    PassiveReferenceSon_1[] passiveReferenceSons_1 = new PassiveReferenceSon_1[10];
+    ```
 
-      述代码运行之后，只输出 “hello world”，这是因为虽然在 Java 源码中引用了 PassiveReferenceParent 类中的常量 CONSTANT，但是编译阶段将此常量的值“hello world”存储到了 NotInitialization 常量池中，对常量 PassiveReferenceParent.CONSTANT 的引用实际都被转化为 NotInitialization 类对自身常量池的引用了。也就是说，实际上 NotInitialization 的 Class 文件之中并没有 PassiveReferenceParent 类的符号引用入口，这两个类在编译为 Class 文件之后就不存在关系了。
+    上述案例运行之后并没有任何输出，说明虚拟机并没有初始化类 PassiveReferenceSon_1[com.javaBasic.classInitial.PassiveReference.PassiveReferenceSon_1 的类的初始化。从类名称我们可以看出，这个类代表了元素类型为 PassiveReferenceSon_1 的一维数组，它是由虚拟机自动生成的，直接继承于 Object 的子类，创建动作由字节码指令 newarray 触发。
+
+  - 常量在编译阶段会存入调用类的常量池中，本质上并没有直接引用到定义常量的类，因此不会触发定义常量的类的初始化
+
+    ```
+    System.out.println(PassiveReferenceParent.CONSTANT);
+    // output:
+    hello world
+    ```
+
+    述代码运行之后，只输出 “hello world”，这是因为虽然在 Java 源码中引用了 PassiveReferenceParent 类中的常量 CONSTANT，但是编译阶段将此常量的值“hello world”存储到了 NotInitialization 常量池中，对常量 PassiveReferenceParent.CONSTANT 的引用实际都被转化为 NotInitialization 类对自身常量池的引用了。也就是说，实际上 NotInitialization 的 Class 文件之中并没有 PassiveReferenceParent 类的符号引用入口，这两个类在编译为 Class 文件之后就不存在关系了。
+
+- 类加载机制
+
+  - 双亲委派模型：
+    双亲委派模型的工作流程是：如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把请求委托给父加载器去完成，依次向上，因此，所有的类加载请求最终都应该被传递到顶层的启动类加载器中，只有当父加载器在它的搜索范围中没有找到所需的类时，即无法完成该加载，子加载器才会尝试自己去加载该类。
+
+  双亲委派机制:
+  1、当 AppClassLoader 加载一个 class 时，它首先不会自己去尝试加载这个类，而是把类加载请求委派给父类加载器 ExtClassLoader 去完成。
+  2、当 ExtClassLoader 加载一个 class 时，它首先也不会自己去尝试加载这个类，而是把类加载请求委派给 BootStrapClassLoader 去完成。
+  3、如果 BootStrapClassLoader 加载失败（例如在$JAVA_HOME/jre/lib 里未查找到该 class），会使用 ExtClassLoader 来尝试加载；
+  4、若 ExtClassLoader 也加载失败，则会使用 AppClassLoader 来加载，如果 AppClassLoader 也加载失败，则会报出异常 ClassNotFoundException。
 
 - 类的实例化
 
@@ -2454,6 +2575,85 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
   - Bitmap 使用后未调用 recycle()
   - static 等关键字
   - 非静态内部类持有外部类的引用　 context 泄露
+
+#### 垃圾回收
+
+- 方法区
+
+  主要是存储类信息，常量池（static 常量和 static 变量），编译后的代码（字节码）等数据
+
+- 栈 用来存放基本类型数据与对象引用，每个线程会有个私有的栈。
+- 堆 用来存放对象
+- 分为新生代、年老代，以比例 1：2 划分
+
+  新生代分为 Eden，survival （from+ to）
+
+  堆里面分为新生代和老生代（java8 取消了永久代，采用了 Metaspace），新生代包含 Eden+Survivor 区，survivor 区里面分为 from 和 to 区，内存回收时，如果用的是复制算法，从 from 复制到 to，当经过一次或者多次 GC 之后，存活下来的对象会被移动到老年区，当 JVM 内存不够用的时候，会触发 Full GC，清理 JVM 老年区
+
+      当新生区满了之后会触发Minor GC,先把存活的对象放到其中一个Survice
+      区，然后进行垃圾清理。因为如果仅仅清理需要删除的对象，这样会导致内存碎
+      片，因此一般会把Eden 进行完全的清理，然后整理内存。那么下次GC 的时候，
+      就会使用下一个Survive，这样循环使用。如果有特别大的对象，新生代放不下，
+      就会使用老年代的担保，直接放到老年代里面。因为JVM 认为，一般大对象的存
+      活时间一般比较久远。
+
+      所以 Minor GC  新生代，频繁执行;Full GC 很少执行，较慢 system.gc()显式触发 或 老年代空间不足触发
+
+- 垃圾收集主要针对的是堆和方法区进行。
+  程序计数器、虚拟机栈、和本地方法都是属于线程私有的，只存在与线程的生命周期内，线程结束后也会消失，所以不需要对这三个区域进行垃圾回收。
+
+  - 垃圾收集算法
+
+  垃圾收集有**根回收算法**与**引用计数算法**。
+
+  - 根回收算法是从跟对象为起点，能够到达的对象都是存活的，不可达的对象可被回收。
+  - java 中可以作为 GC Roots 对象包括以下几种：
+    - 1.虚拟机栈（栈帧中的本地变量表）中的引用对象。
+    - 2.方法区中的类静态属性引用的对象。
+    - 3.方法区中的常量引用的对象。
+    - 4.本地方法栈中 JNI(也即一般说的 Native 方法)的引用的对象。
+  - 引用计数是给对象添加一个引用计数器，当对象增加一个引用时计数器加 1，引用失效时计数器减 1。引用计数不为 0 的对象仍然存活。
+    两个对象出现循环引用的情况下，此时引用计数器永远不为 0，导致无法对它们进行回收。
+
+  - Java 语言使用跟搜索算法进行垃圾回收，回收方法有：
+
+    - 标记-清除 将存活的对象标记，清理掉未标记的对象 不足：产生大量不连续内存
+    - 标记-整理 将存活的对象移到一端，清理掉边界外的对象
+    - 复制 分一半内存，一块内存用满后对此块内存中还存活的对象复制的另一块内存中，然后清理此块内存 不足：只占用了一半的内存
+      分代回收
+      Young Generation 复制
+      Old Generation 标记清除
+      Permanent Generation
+
+- 垃圾收集器
+
+  > 多线程/单线程 ： 单线程指垃圾收集器只使用一个线程清理，而多线程使用多个线程 <br>
+  > 串行/并行 ： 串行指的是垃圾收集器与用户程序交替执行，意味着执行垃圾收集的时候需要停顿用户程序。并行指的是垃圾收集与用户程序同时执行。除了 CMS 和 G1，其他垃圾收集器使用串行方式。
+
+  - serial 串行 单线程 Client 模式下的默认新生代收集器 优点：简单高效
+  - parNew serial 的多线程版本
+  - Parallel scavenge 多线程 “吞吐量优先”收集器 这里的吞吐量指 CPU 用于运行用户代码的时间占总时间的比值
+  - CMS CMS（Concurrent Mark Sweep），Mark Sweep 指的是标记 - 清除算法
+  - serial Old Serial 收集器的老年代版本 Client 模式下的虚拟机使用
+  - Parallel Old Parallel Scavenge 收集器的老年代版本
+  - G1 一款面向服务端应用的垃圾收集器，在多 CPU 和大内存的场景下有很好的性能
+
+#### JVM 调优
+
+- 堆大小设置
+
+  JVM 中最大堆大小有三方面限制：
+  相关操作系统的数据模型(32-bit 或 64-bit)限制；
+  系统的可用虚拟内存限制
+  系统的可用物理内存限制
+  如：java -Xmx3550m -Xms3550m -Xmn2g -Xss128k
+  -Xmx3550m: 设置最大可用内存为 3550m
+  -xms3550m：设置 JVM 初始内存为 3550m。此值可以设置与-Xmx 相同，以避免每次垃圾回收完后 JVM 重新分配内存
+  -Xmn2g：设置年轻代大小为 2g。持久代大小一般固定为 64m
+  -Xss128k: 设置每个堆栈大小
+
+- 回收器选择
+- 辅助信息
 
 
 ## 分布式
