@@ -15,11 +15,12 @@ def mergeFile():
     fileList.sort(key=lambda x: int(x.split('.')[0]))
     menu = []
 
-    menu.append('> # 目录结构\n\n')
+    menu.append('[阅览](https://duiliuliu.github.io/Interview/)\n\n')
+    menu.append('> # 目录\n\n')
     for file in fileList:
         file = file.split(' ')[1]
         file = file.replace(SUFFIX, '')
-        file = '### [{}](#{})\n'.format(file, file)
+        file = '- [{}](#{})\n'.format(file, file)
         menu.append(file)
 
     menu.append('\n')
@@ -28,11 +29,12 @@ def mergeFile():
         f.writelines(menu)
 
         for file in fileList:
-            f.write('## {}\n'.format(file.split(' ')[1].replace(SUFFIX, '')))
+            f.write('\n\n## {}\n\n'.format(
+                file.split(' ')[1].replace(SUFFIX, '')))
             file = docPath + file
-            f.write(open(file, 'r', encoding=ENCODER).read())
+            f.write(open(file, 'r', encoding=ENCODER).read().replace(
+                "../images", "./images"))
 
 
 if __name__ == '__main__':
-    # mergeFile()
-    print('merge')
+    mergeFile()

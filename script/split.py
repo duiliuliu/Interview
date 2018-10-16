@@ -33,6 +33,7 @@ def splitFile():
     for row in rows:
         if '##' not in row.split(' '):
             with open(filename, 'a', encoding=ENCODER) as f:
+                row = row.replace("./images", "../images")
                 f.write(row)
                 # f.write('\n')
         else:
@@ -42,5 +43,4 @@ def splitFile():
 
 
 if __name__ == '__main__':
-    # splitFile()
-    print('split')
+    splitFile()
