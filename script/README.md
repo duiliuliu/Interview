@@ -9,17 +9,17 @@ Support Windows platform
 run -h
 ```
 
--- merge
-"Merge files in doc directory"
+  -- merge
+  "Merge files in doc directory"
 
--- split
-"Split readme file"
+  -- split
+  "Split readme file"
 
--- compile xxx
-"Compile java code"
+  -- compile xxx
+  "Compile java code"
 
--- start xxx
-"Run java code"
+  -- start xxx
+  "Run java code"
 
 - Merge files in doc directory
 
