@@ -11,10 +11,13 @@ run -h
 
 -- merge
 "Merge files in doc directory"
+
 -- split
 "Split readme file"
+
 -- compile xxx
 "Compile java code"
+
 -- start xxx
 "Run java code"
 
