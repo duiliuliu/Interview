@@ -297,6 +297,8 @@ TCP(Transmission Control Protocol 传输控制协议)是一种面向连接的、
 
   TCP 为了保证任何环境下都能保持较高性能的通信, 因此会动态计算这个最大超时时间.
 
+> https://www.cnblogs.com/wxgblogs/p/5616829.html
+
 - 滑动窗口
 
 - 流量控制
@@ -829,10 +831,42 @@ AVL 是高度平衡的树，插入删除都需要大量的左旋右旋进行重�
 
   - 内连接是保证两个表中的数据要满足连接条件
 
----
 
 > https://blog.csdn.net/gui951753/article/details/79489279
 
+#### 数据库优化
+
+- sql语句优化
+  1. 应尽量避免在where字句中使用!=或<>操作符，否则引擎放弃使用索引而进行全表扫描
+  2. 应避免在where字句中对字段进行null值判断，否则将导致引擎放弃索引而进行全表扫描。如：
+
+    `select id from table where num is null`
+
+    可以在num字段上设置默认值0，确保表中没有null值，然后这样查询：
+
+    `select id from table where num = 0`
+
+  3. 很多时候，exist代替in是一个很好的选择
+  4. 使用where子句代替having子句，因为having会检索出所有记录后进行过滤
+
+- 索引优化
+- 数据库结构优化
+  1. 范式优化
+
+    消除冗余
+
+  2. 反范式优化
+
+    比如适当增加冗余等(减少join)
+
+  3. 拆分表
+      1. 水平拆分
+
+          表中的数据量比较大时，可进行水平拆分，根据唯一id hash分区或者时间或者数据量，当对表进行查询时，通过中间件计算记录所在分区，然后只需在表分区中进行查询，缩短了查询时间
+      2. 垂直拆分
+
+
+- 服务器硬件优化
 
 ## 设计模式
 
@@ -1431,7 +1465,13 @@ String res = new String(srtbyte,"UTF-8");
 
 - ![java集合](./images/java集合.png)
 - ArrayList
+
+  > https://www.cnblogs.com/kuoAT/p/6771653.html
+
+  **ArrayList 什么时候扩容**
+
 - LinkedList
+- vector
 
 #### Map
 
@@ -1872,7 +1912,7 @@ Java 中 Class.forName 和 classloader 都可以对类进行加载。
 
   - 乐观锁
 
-    总是认为不会产生兵法问题，每次*读取*数据的时候认为不会有其他线程对数据进行修改，因此不会上锁。
+    总是认为不会产生并发问题，每次*读取*数据的时候认为不会有其他线程对数据进行修改，因此不会上锁。
 
     但是在更新的时候会判断其他线程在这之前有没有对数据进行修改,一般会使用*版本控制机制或 CAS*实现。
 
@@ -1882,7 +1922,7 @@ Java 中 Class.forName 和 classloader 都可以对类进行加载。
 
       一般是在数据表中加上一个数据版本号字段(version)，表示数据被修改的次数,当数据被修改时，version 值会加 1.
 
-      当线程 A 要更新数据时，读取数据的同时也会读取 version，提交更新时对比 version，若 version 与数据库中 version 相等时进行更新，否则重试更新操作，知道更新成功。(类似锁的自旋)
+      当线程 A 要更新数据时，读取数据的同时也会读取 version，提交更新时对比 version，若之前读取的 version 与此刻数据库中 version 相等时进行更新，否则重试更新操作，直到更新成功。(类似锁的自旋)
 
     - CAS
 
@@ -2014,7 +2054,7 @@ synchronized 是 jvm 层面的锁，是 Java 的内置特性
 
   - 字节码层面
 
-    synchronized 是基于进入和退出管程(Monitor)对象实现(monitorEntor 和 monitorExit),monitorEnter 指令插入同步代码开始位置，monitorExit 指令插入到同步代码结束位置。任何一个对象都有一个 monitor 与之相关联，当一个线程处于 monitor 之后，它将处于锁定状态
+    synchronized 是基于进入和退出管程(Monitor)对象实现(monitorEnter 和 monitorExit),monitorEnter 指令插入同步代码开始位置，monitorExit 指令插入到同步代码结束位置。任何一个对象都有一个 monitor 与之相关联，当一个线程处于 monitor 之后，它将处于锁定状态
 
     ![Synchronized字节码](./images/Synchronized字节码.png)
 
@@ -2339,6 +2379,127 @@ java.util.concurrent.Executors 工厂类可以创建四种类型的线程池，�
     1. 工作线程会从 DelayQueue 中取出已经到期的任务去执行
     2. 执行结束后重新设置任务的到期时间，再次放回 DelayQueue。
 
+
+- 对于以上四种类型线程池都实际创建了ThreadPoolExecutor实例，通过构造不同的ThreadPoolExecutor实例来实现不同的线程池。
+
+    ThreadPoolExecutor的构造器如下：
+
+    ```
+    ThreadPoolExecute(
+        int corePoolSize,
+        int maxiumPoolSize,
+        TimeUnit KeepALive,
+        TimeUnit unit,
+        BlockQueue queue,
+        ThreadFactory factory,
+        RejectHandler handler
+    )
+    ```
+
+    corePoolsize 为核心线程数
+    maxiumPoolSize 为最大线程数
+    keepAlive 非核心线程的闲置超时时间，超过这个时间就会被回收
+    unit 为时间单位
+    queue 为任务队列
+    factory 线程工厂，提供创建新线程的功能。ThreadFactory 是一个接口，只有一个方法:
+
+        `public interface ThreadFactory { Thread newThread(Runnable r); }`
+
+        默认的工厂
+
+        ```
+        static class DefaultThreadFactory implements ThreadFactory {
+        private static final AtomicInteger poolNumber = new AtomicInteger(1);
+        private final ThreadGroup group;
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
+        private final String namePrefix;
+
+        DefaultThreadFactory() {
+            SecurityManager var1 = System.getSecurityManager();
+            this.group = var1 != null?var1.getThreadGroup():Thread.currentThread().getThreadGroup();
+            this.namePrefix = "pool-" + poolNumber.getAndIncrement() + "-thread-";
+        }
+
+        public Thread newThread(Runnable var1) {
+            Thread var2 = new Thread(this.group, var1, this.namePrefix + this.threadNumber.getAndIncrement(), 0L);
+            if(var2.isDaemon()) {
+                var2.setDaemon(false);
+            }
+
+            if(var2.getPriority() != 5) {
+                var2.setPriority(5);
+            }
+
+            return var2;
+        }
+        }
+        ```
+
+    handler 为拒绝策略
+
+    当任务添加线程池后，线程池启动一个线程执行任务，直到运行线程与核心线程数相等，之后添加的任务加入任务队列等待执行；任务队列满后，启动新的线程执行任务，但是并不会超过最大线程数。任务队列满且当前线程数等于最大线程数时，执行拒绝策略。
+
+    排队策略：
+      直接提交 任务队列 SynchronousQueue 无界
+      无界队列 LinkedBlockingQueue
+      有界队列 ArrayBlockingQueue
+
+    拒绝策略：
+      ThreadPoolExecutor.AbortPolicy() throw rejectExecutorException
+      ThreadPoolExecutor.DiscardPolicy() 抛弃当前的任务
+      ThreadPoolExecutor.DiscardOldestPolicy() 抛弃旧的任务
+      ThreadPoolExecutor.CallerRunsPolicy() 重试添加当前的任务，他会自动重复调用 execute()方法
+
+- 使用
+
+
+  java 线程的实现有四种： 1. 继承 Thread 类 2. 实现 Runnable 接口 3. 实现 callerable 接口，通过 FutureTask 来调用 4. 通过 ExecutorServicer 线程池来调动
+
+  Java 里面线程池的顶级接口是 Executor，但是严格意义上讲 Executor 并不是一个线程池，而只是一个执行线程的工具。真正的线程池接口是 ExecutorService。
+  ```
+  ExecutorService fixedThreadPool = Executor.newFixedThreadPool(4);
+  for( int i = 0; i ++; i < 3 ) {
+    fixedThreadPool.execute(()=>{
+      Thread.sleep(1000);
+    })
+  }
+  ```
+
+#### 阻塞队列
+
+> http://ifeve.com/java-blocking-queue/
+> https://mp.weixin.qq.com/s/AVDuP30guq5PEabotLR-rg
+
+- 阻塞队列
+  - ArrayBlockingQueue
+
+    基于数组实现的，有界的队列，一旦创建后，容量不可变数组，此队列按照先进先出的顺序进行排序。支持公平锁和非公平锁。**为什么支持非公平锁？？**
+
+  - LinkedBlockingQueue
+
+    linkedBlockingQueue是一个用链表实现的有界阻塞队列，添加和获取元素是两个不同的锁，所以并发添加/获取效率更高些。此队列的默认和最大长度为Integer.MAX_VALUE，此队列按照先进先出的原则对元素进行排序
+
+  - PriorityBlockingQueue
+
+    基于数组的，支持优先级的，使用二叉堆实现的无界阻塞队列。使用自然排序或者指定排序规则添加元素时，当数组中元素大于等于容量时，会进行扩容(容量是否小于64，是则2\*capacity+2，否则1.5\*capacity)
+
+  - DelayQueue
+
+    支持延时获取元素的，无界阻塞队列。添加元素时如果超出限制也会扩容，使用Leader-Follower模型
+
+  - SynchronousQueue
+
+    容量为0。一个添加操作后必须等待一个获取操作才可以继续添加，CPU自旋等待消费者取走元素，自旋一定次数后结束
+
+  - LinkedBlockingDeque
+
+    由双向链表组成的、双向阻塞队列。可以从队列两端插入和移除元素。多了一个操作队列的方向，在多线程同时入队时，可以减少一半的竞争
+
+  - LinkedTransferQueue
+
+    一个由链表结构组成的无界阻塞队列，LinkedTransferQueue队列多了transfer()
+    transfer()：如果当前有消费线程正在获取元素，transfer则把元素直接传给消费线程，否则加入到队列中，直到该元素被消费才返回。
+
 #### ThreadLocal
 
 ThreadLocal 是线程的局部变量，是每个线程独有的。
@@ -2395,7 +2556,7 @@ public class ThreadLocal<T> {
   利用当前线程作为句柄，获取一个 ThreadLocalMap 的对象
   如果上述 ThreadLoacalMap 不为空，则设置值；否则，初始化 ThreadLocalMap 并设置值。
 
-在 get 前需要 set，否则 throw nullpointexception;
+在 get 前需要 set，否则 throw nullPointException;
 
 - 原理：
   Thread 里面有一个 ThreadLoacals 成员变量，是 ThreadLocalMap 类型的，key 为 ThreadLocal 实例对象
@@ -2486,13 +2647,20 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
 
       (c)解析：将符号引用转成直接引用
 
+          > https://blog.csdn.net/qq_34402394/article/details/72793119
+
+          **待完善**
+
+          - 符号引用
+          - 直接引用
+
   3.  初始化：对类的静态变量，静态代码块执行初始化操作
 
 - 类的初始化
 
   > <https://blog.csdn.net/justloveyou_/article/details/72466105>
-  > <https://blog.csdn.net/justloveyou_/article/details/72217806>
-  > <https://blog.csdn.net/justloveyou_/article/details/72466416>
+ > <https://blog.csdn.net/justloveyou_/article/details/72217806>
+ > <https://blog.csdn.net/justloveyou_/article/details/72466416>
 
   - 类的实例化是指创建一个类的实例(对象)的过程
 
@@ -2610,15 +2778,57 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
 
 - 类的实例化
 
+  **待完善**
+
 - 练习
 
   **java new 一个对象后创建了几个对象**
 
-  **java new 一个 String 对象后，内存中发生了什么**
+  - java String s = new String(“abc”)对象后创建了几个对象
 
-  **java new 一个对象后，内存中发生了什么**
+    > https://juejin.im/entry/5a4ed02a51882573541c29d5
 
-  **java 创建一个对象有哪几种方法**
+    创建了两个对象，一个对象时字符串‘abc’在常量池中，第二个对象是 Java heap 中的 String 对象
+
+    使用 ” ” 双引号创建 ： String s1 = “first”;
+    使用字符串连接符拼接 ： String s2=”se”+”cond”;
+    使用字符串加引用拼接 ： String s12=”first”+s2;
+    使用 new String(“”)创建 ： String s3 = new String(“three”);
+    使用 new String(“”)拼接 ： String s4 = new String(“fo”)+”ur”;
+    使用 new String(“”)拼接 ： String s5 = new String(“fo”)+new String(“ur”);
+
+    ![String对象创建模型](./images/String对象创建模型.png)
+
+    Java 会确保一个字符串常量只有一个拷贝。
+
+    s1 ： 中的”first” 是字符串常量，在编译期就被确定了，先检查字符串常量池中是否含有”first”字符串,若没有则添加”first”到字符串常量池中，并且直接指向它。所以 s1 直接指向字符串常量池的”first”对象。
+
+    s2 ： “se”和”cond”也都是字符串常量，当一个字符串由多个字符串常量连接而成时，它自己肯定也是字符串常量，所以 s2 也同样在编译期就被解析为一个字符串常量，并且 s2 是常量池中”second”的一个引用。
+
+    s12 ： JVM 对于字符串引用，由于在字符串的”+”连接中，有字符串引用存在，而引用的值在程序编译期是无法确定的，即("first"+s2)无法被编译器优化，只有在程序运行期来动态分配使用 StringBuilder 连接后的新 String 对象赋给 s12。
+    (编译器创建一个 StringBuilder 对象，并调用 append()方法，最后调用 toString()创建新 String 对象，以包含修改后的字符串内容)
+
+    s3 ： 用 new String() 创建的字符串不是常量，不能在编译期就确定，所以 new String() 创建的字符串不放入常量池中，它们有自己的地址空间。
+    但是”three”字符串常量在编译期也会被加入到字符串常量池（如果不存在的话）
+
+    s4 ： 同样不能在编译期确定，但是”fo”和”ur”这两个字符串常量也会添加到字符串常量池中，并且在堆中创建 String 对象。（字符串常量池并不会存放”four”这个字符串）
+
+    s5 ： 原理同 s4
+
+  - java new 一个对象后，内存中发生了什么
+
+    1. 类加载检查
+
+       虚拟机遇到一条 new 指令时，首先将去检查这个指令的参数是否能在常量池中定位到一个类的符号引用，并且检查这个符号引用所代表的类是否已加载/解析和初始化过。如果没有则进行相应加载解析初始化
+
+    2. 分配内存空间
+
+       类加载检查通过后，jvm 为新生对象分配内存空间，这是对象所需内存大小已经完全确定了
+
+    3. 设置对象基本信息
+    4. 程序员意愿的初始化和调用构造函数
+
+**java 创建一个对象有哪几种方法**
 
 #### oom
 
@@ -2649,7 +2859,7 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
 - 堆 用来存放对象
 - 分为新生代、年老代，以比例 1：2 划分
 
-  新生代分为 Eden，survival （from+ to）
+  新生代分为 Eden，survival （from+ to）(8:1:1)
 
   堆里面分为新生代和老生代（java8 取消了永久代，采用了 Metaspace），新生代包含 Eden+Survivor 区，survivor 区里面分为 from 和 to 区，内存回收时，如果用的是复制算法，从 from 复制到 to，当经过一次或者多次 GC 之后，存活下来的对象会被移动到老年区，当 JVM 内存不够用的时候，会触发 Full GC，清理 JVM 老年区
 
@@ -2774,9 +2984,13 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
 
 ## MySql
 
+> https://www.cnblogs.com/frankielf0921/p/5930743.html
+
 #### MyISAM 与 InnoDB 的区别
 
 - mysql 分页机制
+
+#### 例题
 
 
 ## MongoDB
@@ -2785,6 +2999,18 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
 
 ## Redis
 
+> https://blog.csdn.net/qq_39783244/article/details/79403613
+ >https://blog.csdn.net/yupi1057/article/details/82703280?utm_source=blogxgwz0
+
+#### Redis 基本概念
+
+- 名称： Remote Dictionary Server
+
+redis 是速度非常快的非关系型(NoSql)内存键值数据库，可以存储键和五种数据类型。
+
+键的类型只能字符串，值支持的数据类型有五种：字符串/列表/集合/有序集合/散列表
+
+redis 支持很多特性，如可将数据持久化到硬盘中，使用复制来扩展读性能，使用分片来扩展写性能
 
 
 ## ElasticSearch
@@ -3235,6 +3461,10 @@ $ curl 'localhost:9200/\_mapping?pretty=true'
 
 collections 库
 
+- 数组拷贝
+
+  `new = old[:]`
+
 
 ## JavaScript
 
@@ -3245,6 +3475,13 @@ collections 库
 - var obj = JSON.parse(str) <---> JSON.stringify(obj)
 
 #### js 闭包
+
+> https://blog.csdn.net/qq_29066959/article/details/50803576?utm_source=blogxgwz1
+
+- this
+  - 在全局函数中的 this 等于 window
+  - 当函数被当作某个对象的方法使用时，this 等于那个对象
+  - 匿名函数的执行环境具有全局性，this 通常指向 window
 
 
 ## Shell
@@ -3359,18 +3596,52 @@ cglib 是对一个小而快的字节码处理框架 ASM 的封装。 他的特�
 
 #### 浏览器中输入 www.taobao.com 发生了什么
 
-#### LRU 算法实现
+#### 对于缓存有什么思考
 
-LRU 全称是 Least Recently Used，即最近最久未使用的意思。
+缓存是对读取数据速度的提升，将常用/高频的数据存放与缓存中，可以在下一次的数据访问中提升效率。
 
-LRU 算法的设计原则是：如果一个数据在最近一段时间没有被访问到，那么在将来它被访问的可能性也很小。也就是说，当限定的空间已存满数据时，应当把最久没有被访问到的数据淘汰。
+对于缓存，很多地方都有遇到，有磁盘缓存，DB 缓存，浏览器缓存，CPU 一级/二级缓存等。
 
-1.  数组+时间计数
-    每访问一次数据，相应的时间计数归零，其他数据时间计数加一，当数组空间已满时，将时间计数最大的数据项淘汰。
-2.  链表实现
-    每次插入新的数据都选择从头部插入，如果数据已存在，则将数据移到头部；那么当链表满的时候，就将链表尾部的数据丢弃。
-3.  链表和 hashmap
-    当需要插入新的数据项的时候，如果新数据项在链表中存在（一般称为命中），则把该节点移到链表头部，如果不存在，则新建一个节点，放到链表头部，若缓存满了，则把链表最后一个节点删除即可。在访问数据的时候，如果数据项在链表中存在，则把该节点移到链表头部，否则返回-1。这样一来在链表尾部的节点就是最近最久未访问的数据项。(LinkedHashMap)
+- 简单的 Java 缓存队列
+  在 Java 程序中，对于缓存可以用 LRU 队列进行实现，将最新访问的数据作为头节点，而最久未使用的数据存放队尾，在队列长度达到限制后，扔掉队尾的数据。可以运用 LinkedHashMap 来实现 LRU 队列，因为 LInkedHashMap 有两个指针域分别指向前驱与后缀，保证了队列顺序，而且采用 hash 散列存储，访问效率较高。构造时构造一个空的 linkedhashmap。get 时传入 key，类似与 hashmap，将 key 的 hashcode 二次 hash 后与长度-1 进行&运算，快速得到位置下标，获取数据，并修改数据指针域，将其插入头节点。set 方法通过 hash 得出位置后，存储数据然后后缀指针域指向头节点。
+
+- LRU 算法实现
+
+  LRU 全称是 Least Recently Used，即最近最久未使用的意思。
+
+  LRU 算法的设计原则是：如果一个数据在最近一段时间没有被访问到，那么在将来它被访问的可能性也很小。也就是说，当限定的空间已存满数据时，应当把最久没有被访问到的数据淘汰。
+
+  1.  数组+时间计数
+      每访问一次数据，相应的时间计数归零，其他数据时间计数加一，当数组空间已满时，将时间计数最大的数据项淘汰。
+  2.  链表实现
+      每次插入新的数据都选择从头部插入，如果数据已存在，则将数据移到头部；那么当链表满的时候，就将链表尾部的数据丢弃。
+  3.  链表和 hashmap
+      当需要插入新的数据项的时候，如果新数据项在链表中存在（一般称为命中），则把该节点移到链表头部，如果不存在，则新建一个节点，放到链表头部，若缓存满了，则把链表最后一个节点删除即可。在访问数据的时候，如果数据项在链表中存在，则把该节点移到链表头部，否则返回-1。这样一来在链表尾部的节点就是最近最久未访问的数据项。(LinkedHashMap)
+
+- DB 缓存
+
+  关键点：
+
+  - 如何与 DB 保持同步
+  - 缓存过期时间
+  - 存储结构
+  - 缓存异常捕获
+  - 超时设置
+
+**Spring 缓存**
+**分布式缓存**
+
+- redis 缓存设计
+
+> https://blog.csdn.net/zjttlance/article/details/80234341?utm_source=blogxgwz3
+
+> https://blog.csdn.net/tangkund3218/article/details/50915007?utm_source=blogxgwz8
+
+- 注意问题
+  > https://blog.csdn.net/wuxing26jiayou/article/details/79544410?utm_source=blogxgwz0
+  - 缓存穿透
+  - 缓存雪崩
+  - 缓存击穿
 
 #### 设计一个秒杀系统
 
