@@ -10,12 +10,14 @@
 @rem -------------------------------------------------------------------------
 setlocal enabledelayedexpansion
 set currentPath=%cd%
-if exist "%cd%\test" ( set projectPath=%cd% ) else (
+set javaTest=java-test
+
+if exist "%cd%\%javaTest%" ( set projectPath=%cd% ) else (
     cd %currentPath%\..
 )
 set projectPath=%cd%
-set srcPath=%projectPath%\test\src
-set binPath=%projectPath%\test\bin
+set srcPath=%projectPath%\%javaTest%\src
+set binPath=%projectPath%\%javaTest%\bin
 
 
 if "%~1" EQU "" (
@@ -38,7 +40,7 @@ for /R %binPath% %%i in (.) do (
         goto End
     )
 )
-echo run %javaFile%.class failure, javaFile not found!
+echo run %javaFile% failure, File %javaFile%.class not found!
 
 
 :End

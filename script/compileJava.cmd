@@ -9,12 +9,14 @@
 @rem initialize variable
 @rem -------------------------------------------------------------------------
 set currentPath=%cd%
-if exist "%cd%\test" ( set projectPath=%cd% ) else (
+set javaTest=java-test
+
+if exist "%cd%\%javaTest%" ( set projectPath=%cd% ) else (
     cd %currentPath%\..
 )
 set projectPath=%cd%
-set srcPath=%projectPath%\test\src\com
-set binPath=%projectPath%\test\bin
+set srcPath=%projectPath%\%javaTest%\src\com
+set binPath=%projectPath%\%javaTest%\bin
 
 
 if "%~1" EQU "" (
