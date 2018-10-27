@@ -1,4 +1,11 @@
-h1,h2,h3,h4,h5,h6,p,blockquote {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote {
     margin: 0;
     padding: 0;
 }
@@ -12,26 +19,28 @@ body {
 }
 
 .mytext-1 {
-    border-radius:3px;
-    border:1px solid rgb(135, 245, 162);
+    border-radius: 3px;
+    border: 1px solid rgb(135, 245, 162);
     color: transparent;
     -webkit-text-stroke: 0.8px rgb(135, 245, 162);
-    }
-.mytext-2{
-    border-radius:3px;
-    border:1px solid rgb(169, 180, 72);
+}
+
+.mytext-2 {
+    border-radius: 3px;
+    border: 1px solid rgb(169, 180, 72);
     color: transparent;
     -webkit-text-stroke: 0.8px rgb(169, 180, 72);
 }
-.mytext-3{
-    border-radius:3px;
-    border:1px solid rgb(151, 59, 43);
+
+.mytext-3 {
+    border-radius: 3px;
+    border: 1px solid rgb(151, 59, 43);
     color: transparent;
     -webkit-text-stroke: 0.8px rgb(151, 59, 43);
 }
 
-img{
-    
+img {
+
     width: 2.7cm;
     height: 3.6cm;
     float: right;
@@ -41,7 +50,12 @@ p {
     margin-bottom: 9px;
 }
 
-h1,h2,h3,h4,h5,h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     color: #404040;
     line-height: 36px;
 }
@@ -107,11 +121,13 @@ blockquote p {
     }
 }
 
-ul,ol {
-    margin-top: 4px;
+ul,
+ol {
+    margin-top: 3px;
 }
 
-h3 span,h4 span{
+h3 span,
+h4 span {
     padding-left: 6px;
 }
 
@@ -120,7 +136,7 @@ h3 span,h4 span{
 }
 
 footer {
-    text-align:center;
+    text-align: center;
 }
 
 .nolist {
