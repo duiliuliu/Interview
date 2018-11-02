@@ -58,6 +58,10 @@ public class ThreadOrderExecute {
             }
             System.out.println(threadName + " print: " + i);
         }
+
+        /**
+         * output: ABCABCABCABCABCABCABCABCABCABC
+         */
     }
 
 }

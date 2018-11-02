@@ -36,9 +36,11 @@
 
 ## 综述
 
-
+https://www.nowcoder.com/discuss/67733?type=0&order=0&pos=130&page=1
 
 ## 项目经验
+
+#### Java 实习项目
 
 我此刻参与的项目吧。<br>
 我在搜索引擎部分，正在做的搜索引擎的后台管理。前端使用 react,后端使用 springBoot,数据在 elasticsearch 中请求。服务器使用 node 做代理转发请求给 springboot。
@@ -53,6 +55,39 @@
   - 用的是 es 提供的 java 包，请求为 restClient_searchAdmin.performRequest(method,url,Collections.<String,String>emptyMap(),entity)
   - es 建表语句
   - es 增删改改查
+
+- 在项目中遇到的问题？解决方案
+
+  - es 热备份问题
+  - node 代理在 aws 上失效
+
+    - > https://blog.csdn.net/weixin_36094484/article/details/80255199?utm_source=blogxgwz0
+    - > https://www.cnblogs.com/lgjc/p/8691802.html
+
+- 最近计划看书或者学习？
+
+#### python 实习项目
+
+- 舆情系统调度爬虫调度实现
+
+  - scrapy 调度
+    - https://www.cnblogs.com/lei0213/p/7900340.html
+    - https://www.aliyun.com/jiaocheng/435645.html
+  - Java 调度
+  - python 调度
+
+#### 你对技术框架怎么看
+
+> hr：你对我们公司的技术方面有什么看法
+
+对于互联网企业，可以分为技术驱动型/产品驱动型/服务驱动型
+
+技术驱动的可以说有：Google，Microsoft
+产品驱动的比如腾讯
+服务驱动的比如阿里
+
+(普遍来讲)
+所以在我国，更多的是利用现有的技术去解决问题，是对技术运用的创新；而非对技术的创新。因此，我们要关注业务的发展，应对业务的发展而去解决一系列的问题。由此诞生了很多的技术框架，各有侧重点。
 
 
 ## 操作系统
@@ -124,7 +159,14 @@
 
 - 死锁(deadlock)
 
-指的是两个或者两个以上的进程相互竞争系统资源，导致进程永久阻塞。
+  指的是两个或者两个以上的进程相互竞争系统资源，导致进程永久阻塞。
+
+  - 死锁条件
+
+    - 互斥条件
+    - 不可剥夺条件
+    - 请求和保持
+    - 循环等待
 
 - 饥饿(starvation)
 
@@ -1408,9 +1450,50 @@ String res = new String(srtbyte,"UTF-8");
 
 多态就是依赖运行期动态加载和动态链接这个特点实现的
 
+#### java 基本数据类型
+
+- 基本数据类型与包装类
+
+- 基本数据类型缓存
+  - https://www.cnblogs.com/javatech/p/3650460.html
+
+#### Object 类
+
+Object 类是所有类的父类，任何类都默认继承 Object。
+
+该类中主要有以下方法：toString(), getClass(), equals(), clone(), finalize(),其中 toString(), getClass(), equals()是较为重要的方法。
+
+另外，Object 类中的 getClass(), notify(), notifyall(), wait()等方法被定义为 final 类型，因此不能重写
+
+- clone()方法
+
+  `protected native Object clone() throws CloneNotSupportedException;`
+
+  保护方法，实现对象的浅复制，只有实现了 Cloneable 接口才可以调用该方法，否则抛出 CloneNotSupportedException 异常。
+
+  在 Java 中参数传递机制为值传递，对于 8 中基本类型来说直接拷贝值，而对于对象则是拷贝引用，原对象与拷贝对象指向同意内存地址，这就是浅拷贝。当对拷贝对象进行修改时，原对象也会改变。
+
+  如果我们需要实现拷贝对象对原对象的完全拷贝则需要在类中重写 clone 方法(实现深复制)
+
+  - clone 与 copy 的区别
+  - Shallow Clone 与 Deep Clone
+  - clone 方法的保护机制
+  - clone 方法的使用
+
+- toString()方法
+- getClass()方法
+- finalize()方法
+- equals()方法
+- hashCode()方法
+- wait()方法
+- notify()方法
+- notifyAll 方法
+
 #### 多态
 
 #### 接口与抽象类
+
+http://www.importnew.com/12399.html
 
 
 ## JDBC
@@ -1506,6 +1589,7 @@ String res = new String(srtbyte,"UTF-8");
   > https://www.cnblogs.com/kuoAT/p/6771653.html
 
   **ArrayList 什么时候扩容**
+  **ArrayList 与 Array**
 
 - LinkedList
 - vector
@@ -2332,11 +2416,144 @@ synchronized 是 jvm 层面的锁，是 Java 的内置特性
 
    先检查当前 value 是否等于 current，如果相等，则意味着 value 没被其他线程修改过，更新并返回 true。如果不相等，compareAndSet 则会返回 false，然后循环继续尝试更新。
 
-#### 线程中断与 synchronized
+#### java线程
+
+- 线程中断与 synchronized
 
 > https://github.com/duiliuliu/Interview/tree/master/test/src/com/thread/threadInterrupt
 
 > https://blog.csdn.net/javazejian/article/details/72828483#%E7%BA%BF%E7%A8%8B%E4%B8%AD%E6%96%AD%E4%B8%8Esynchronized
+
+- Java线程停止
+  
+  - stop
+
+    会让线程戛然而止，无法得知线程完成了什么，没完成什么。当线程正在进行一些耗时操作如：文件读写/数据库操作，突然终止很可能会有错误发生。
+
+    在线程外之间通过线程对象调用 thread.stop();
+
+    ```
+     Thread thread = new Thread(() -> {
+          while (true) {
+              System.out.println("thread running");
+          }
+      });
+
+      thread.start();
+
+      try {
+          Thread.sleep(3000);
+      } catch (Exception e) {
+          // TODO: handle exception
+      }
+
+      thread.stop();
+      System.out.println("thread stop");
+    ```
+
+  - interupt
+    
+    线程内部通过while循环一直判断isInterupted()来运行。
+    ` while (!Thread.currentThread().isInterrupted()){}`
+    不过循环块内部不能捕获ThreadInterruptedException,否则线程不会终止。
+    线程外部通过调用线程对象调用interupt()方法进行终止线程
+
+    ```
+        Thread thread = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                System.out.println("thread running");
+                // 循环快内不能捕获异常，因为是通过异常跳出循环
+                // try {
+                // Thread.sleep(1000);
+                // } catch (Exception e) {
+                // // TODO: handle exception
+                // e.printStackTrace();
+                // }
+                
+                // 倘若此处捕获中断异常，则线程不会终止
+            }
+        });
+        thread.start();
+
+        try {
+            Thread.sleep(1000);
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+
+        thread.interrupt();
+        System.out.println("thread stop");
+    ```
+
+  - volatile
+
+    设置一个标志位,线程间共享信息。
+
+    ```
+    static volatile boolean flag = true;
+
+    public static void main(String[] args) {
+        Thread thread = new Thread(() -> {
+            while (flag) {
+                System.out.println("thread running");
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+
+        try {
+            Thread.sleep(3000);
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+
+        flag = false;
+        System.out.println("thread stop");
+    }
+    ```
+
+  - 线程池shutdownNow()
+
+
+  - 线程池 单个线程终止
+
+- Java线程之wait/notify
+
+  wait() 与 notify/notifyAll 方法必须在同步代码块中使用
+
+  wait() 与 notify/notifyAll() 是Object类的方法，在执行两个方法时，要先获得锁。那么怎么获得锁呢？
+
+  在这篇：JAVA多线程之Synchronized关键字--对象锁的特点文章中介绍了使用synchronized关键字获得锁。因此，wait() 与  notify/notifyAll() 经常与synchronized搭配使用，即在synchronized修饰的同步代码块或方法里面调用wait() 与  notify/notifyAll()方法。
+
+- Java Thread 的 sleep() 和 wait() 
+
+  > https://www.cnblogs.com/renhui/p/6069353.html
+
+  sleep()是线程类(Thread)的方法,主要意思是让当前线程停止，让出cpu给其他的线程，但是*不会释放对象锁资源以及监控状态*，当指定的时间到了之后又会自动回复运行状态。
+
+  wait()是object类里面的，主要的意义是让当前的线程放弃对象的锁，进入等待次对象的等待锁定池，只有针对此对象调动notify方法后本线程才能够进入对象锁定池准备获取对象锁进入运行状态。
+
+  例题：
+
+  关于sleep()和wait()，以下描述错误的一项是（ ）
+  A. sleep是线程类（Thread）的方法，wait是Object类的方法；
+  B. sleep不释放对象锁，wait放弃对象锁；
+  C. sleep暂停线程、但监控状态仍然保持，结束后会自动恢复；
+  D. wait后进入等待锁定池，只有针对此对象发出notify方法后获得对象锁进入运行状态。
+  答案：D
+
+- Java线程yield
+
+  使当前线程从执行状态（运行状态）变为可执行态（就绪状态）。cpu会从众多的可执行态里选择，也就是说，当前也就是刚刚的那个线程还是有可能会被再次执行到的，并不是说一定会执行其他线程而该线程在下一次中不会执行到了。
+
+  用了yield方法后，该线程就会把CPU时间让掉，让其他或者自己的线程执行（也就是谁先抢到谁执行）
+
+- Java线程join
 
 #### java 线程通信
 
@@ -2993,6 +3210,7 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
       - 收集器做一些收尾的工作，以便下一次 GC 周期能有一个干净的状态
 
   - 问题
+
     - 如何确定老年代是活着的
       - 通过 GC ROOT TRACING 可到达的对象就是活着的
     - 是否需要扫描新生代，确定新生代的对象是否活着
@@ -3009,6 +3227,9 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
         设置太小会导致频繁的 GC
         设置太大会使得用户线程空间过小，可能产生 Concurrent Mode Fail 错误(并发模式失败)
       - 空间碎片
+
+  - MinorGC FullGC
+    - http://www.importnew.com/15820.html
 
 #### JVM 调优
 
@@ -3507,6 +3728,117 @@ $ curl 'localhost:9200/\_mapping?pretty=true'
 
 ## Python
 
+#### python 基本数据类型
+
+整型--int
+
+布尔型--bool
+
+字符串--str
+
+列表--list
+
+元组--tuple
+
+字典--dict
+
+#### python 赋值/浅拷贝/深拷贝
+
+- 赋值（=），就是创建了对象的一个新的引用，修改其中任意一个变量都会影响到另一个。
+
+- 浅拷贝：创建一个新的对象，但它包含的是对原始对象中包含项的引用（如果用引用的方式修改其中一个对象，另外一个也会修改改变）{1,完全切片方法；2，工厂函数，如 list()；3，copy 模块的 copy()函数}
+
+- 深拷贝：创建一个新的对象，并且递归的复制它所包含的对象（修改其中一个，另外一个不会改变）{copy 模块的 deep.deepcopy()函数}
+
+#### python 中的比较： is 与 ==
+
+> https://www.cnblogs.com/kiko0o0/p/8135184.html
+
+在 python 中会用到对象比较，可以用 is，也可以用 ==。
+
+- is 比较的是两个对象是不是相同。比较的是对象的内存地址(对象的 id)
+- - == 比较的两个对象是不是相等。比较的是对象的值。即内存地址可以不一样，有相等的值就返回 true。默认调用对象的\_\_eq\_\_e()方法
+
+```
+>>> a = ["i", "love", "python"]
+# a的引用复制给b，在内存中其实是指向了用一个对象
+>>> b = a
+>>> b is a
+True
+>>> id(a)
+2830205149832
+>>> id(b)
+2830205149832
+# 当然，内容也肯定是相等的
+>>> b == a
+True
+```
+
+a 和 b 指向同一块内存，所以 is 与==比较结果为 True，下面将 a 复制为 b，内存地址不同，值一样
+
+```
+>>> b = a[:]
+>>> b is a
+False
+>>> b == a
+True
+>>> id(a)
+2830205149832
+>>> id(b)
+2830206374920
+```
+
+不过在这里需要注意的是，如果比较 a[0]与 b[0],a[0] is b[0]，结果是 True
+因为切片拷贝是浅拷贝，列表中的元素并未重新创建
+
+#### python 中 yield
+
+#### fun(*args,\*\*kwargs)中的*args,\*\*kwargs
+
+\*args 和\*\*kwargs 主要用于函数定义时传入不定量参数。
+
+\*args 是用来发送一个非键值对的可变数量的参数元组
+\*\*kwargs 是用来发送一个键值对的可变数量的参数字典
+
+```
+def test(*args,**kwargs):
+    print(args)
+
+test('a','b','c','d')
+# output: ('a','b','c','d')
+
+
+def test(*args,**kwargs):
+    print(kwargs)
+
+test(a='a',b='b',c='c',d='d')
+# output: {'a': 'a', 'b': 'b', 'c': 'c', 'd': 'd'}
+```
+
+#### python 闭包
+
+#### python 内存管理
+
+https://blog.csdn.net/zhzhl202/article/details/7547445?utm_source=blogxgwz0
+https://www.aliyun.com/jiaocheng/510889.html
+
+- 引用计数
+  - python 内部使用引用计数的方式
+- 垃圾回收
+- 内存池机制
+
+#### 全局解释器锁 GIL
+
+#### 导入机制探究
+
+https://blog.csdn.net/gaifuxi9518/article/details/81038818
+
+#### scrapy
+
+#### scrapy-redis
+
+#### 面试题
+
 - 解决 python 循环引用的方法
   - 延迟导入
   - 将 from xxx import yyy 改为 import xxx;xxx.yyy 来访问的形式
@@ -3538,6 +3870,38 @@ collections 库
   - 当函数被当作某个对象的方法使用时，this 等于那个对象
   - 匿名函数的执行环境具有全局性，this 通常指向 window
 
+闭包是一个可以访问外部的(封闭)函数作用域链中变量的内部函数。闭包可以访问三种范围中的变量：
+
+    - 自己范围内的变量
+    - 封闭函数范围内的变量
+    - 全局变量
+
+    ```
+    var gloableVar = "global variable";
+
+    (function outerFunc(outerArg) {
+        var outerVar = "outer variable";
+
+        (function innerFunc(innerArg) {
+            var innerVar = "inner variable";
+
+            console.log([outerArg, innerArg, outerVar, innerVar, gloableVar].join("\n"));
+        })("param: innerArg")
+    })("param: outerArg")
+
+    //在上面的例子中，来自于 innerFunc， outerFunc和全局命名空间的变量都在 innerFunc的范围内。
+    // output:
+    param: outerArg
+    param: innerArg
+    outer variable
+    inner variable
+    global variable
+    ```
+
+- 封装 javascript 源文件的内容到一函数块有什么意义与理由
+
+  这是一个越来越普遍的做法，被许多流行的 JavaScript 库(JQuery,node 等)采用.这种做法是创建了一个围绕文件全部内容的闭包.
+
 
 ## Shell
 
@@ -3548,6 +3912,10 @@ collections 库
 > https://blog.csdn.net/hrbeuwhw/article/details/79476988
 
 #### Spring 常用注解
+
+#### bean 生命周期
+
+> https://www.cnblogs.com/kenshinobiy/p/4652008.html
 
 #### Spring AOP
 
@@ -3643,6 +4011,14 @@ cglib 是对一个小而快的字节码处理框架 ASM 的封装。 他的特�
      对于排序算法的选择，如果一次性将结果汇总，快排/归并/堆排序同样的时间复杂度。
      倘若是按照缓冲区一段段的读取数据进行汇总，此时选用堆排序性能更优。堆排序中，堆的构建需要 o(n)，而堆与堆的调整只需要 lgn，在第一次堆排序需要调整 n-1 次，复杂度为 o(nlogn),但是在之后的调整与读取数据中只需要 lgn 的时间。
 
+   - 堆排序，大顶堆，小顶堆
+     应用场景：
+
+     1. 比如求 10 亿个数中最大的前 10 个数，可以构建只有 10 个元素的小顶堆，如果比堆顶小，则不处理；如果比堆顶大，则替换堆顶，然后依次下沉到适当的位置。
+     2. 同样，求 10 亿个数中最小的前 10 个数，可以构建只有 10 个元素的大定堆，如果比堆顶大，则不处理；如果比堆顶小，则替换堆顶，然后调整堆。
+
+        [堆排序实现](https://github.com/duiliuliu/Interview/blob/master/java-test/src/com/algorithm/sort/HeapSort.java)
+
 2. 多层桶划分
 3. bitmap
 4. Trie 树/数据库/倒排索引
@@ -3716,9 +4092,6 @@ cglib 是对一个小而快的字节码处理框架 ASM 的封装。 他的特�
 ---
 ---
 
-js 中闭包
-python 闭包
-
 innodb
 
 redis，数据类型，消息队列，过期时间问题
@@ -3731,23 +4104,6 @@ redis，数据类型，消息队列，过期时间问题
 
 问了一下流量控制，还是很隐晦，当时大概问的是“一个服务器有很多 TCP 连接，然后某一时刻他可能来不及处理接受到的数据，这时候该怎么办？”。坦白说刚开始听到我是比较懵 B 的，但是仔细想过之后发现这好像就是流量控制，所以很流利的回答了流量控制，顺道说了一下原理。
 
-1. 开始了算法，先问我二叉树学过吗，然后让我设计一个节点，再然后让我比较两棵树是否相同(手写代码)。现在我才明白，大概是在考我用递归怎么遍历树，我当时写的居然是以按层遍历的方式去遍历树，然后两棵树逐个节点作对比。
-
-死锁，死锁预防，死锁避免，死锁检测
-
-三次握手四次挥手的状态字，为什么 3 次，为什么 4 次
-
-3、Redis 用在项目中的哪些地方
-
-9、为什么要加 volatile 关键字，Synchronized 锁住了什么，如果在构造函数中使用远程调用是否会发生中断
-10、一个二维数组，每行每列都是升序排列，求这个数组中第 K 小的数
-11、5 亿条淘宝订单，每条订单包含不同的商品号，每个商品号对应不同的购买数量，求出销量最高的 100 个商品
-
-、最后撸了个代码，非常简单，判断链表是否有环。。。
-
-4. 手撕代码：按层次遍历二叉树
-5. 手撕代码：按层次遍历二叉树(不完全二叉树)节点为 null 的需要输出 null
-
-6. Elastic Search 索引建立
-7. Elastic Search 查询的过程
-8. Elastic Search 集群管理、Master 选举，节点特性
+1. Elastic Search 索引建立
+2. Elastic Search 查询的过程
+3. Elastic Search 集群管理、Master 选举，节点特性

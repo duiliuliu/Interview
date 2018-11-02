@@ -9,21 +9,23 @@ public class NotInterruptSynchronizBlock implements Runnable {
 
     public synchronized void f() {
         System.out.println("Trying to call f()");
-        while(true) // Never releases lock
+        while (true) // Never releases lock
             Thread.yield();
     }
 
-     /**
+    /**
      * Create a new thread in the constructor and start the object lock.
      */
     public NotInterruptSynchronizBlock() {
         // The thread already holds the current instance lock.
+        System.out.println("Class construct");
         new Thread() {
             public void run() {
                 f(); // Lock acquired by this thread
             }
         }.start();
     }
+
     public void run() {
         // Interruption judgment
         while (true) {
@@ -36,7 +38,7 @@ public class NotInterruptSynchronizBlock implements Runnable {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException  {
+    public static void main(String[] args) throws InterruptedException {
         NotInterruptSynchronizBlock sync = new NotInterruptSynchronizBlock();
         Thread t = new Thread(sync);
         // After invoking the f () method, the current instance lock is not waiting.
