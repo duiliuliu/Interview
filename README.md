@@ -17,6 +17,7 @@
 - [java网络IO](#java网络IO)
 - [java反射](#java反射)
 - [java并发编程](#java并发编程)
+- [newjava并发编程](#newjava并发编程)
 - [JVM](#JVM)
 - [newJVM](#newJVM)
 - [分布式](#分布式)
@@ -3029,6 +3030,80 @@ threadlocal 里面使用了一个存在弱引用的 map,当释放掉 threadlocal
             k个元素比较k次的话就是o(n^2)了。
 
             此时我们可以大根堆，建立堆需要o(n),第一次调整堆，进行排序需要(o(nlogn),调整一次lgn，n-1次为nlogn)，而在之后每得到一个top，数列中去掉一个最大值，重新加入一个数，进行调整只需要lgn，取出最大值lgn，这样在之后的时间复杂度就达到了lgn。
+
+
+## newjava并发编程
+
+- 并发的三个特性
+
+  - 原子性
+  - 可见性
+  - 有序性
+
+- Java 并发中的相关概念
+
+  - happen-before
+  - fail-first
+
+- 缓存一致性
+
+#### 锁
+
+- 锁类型
+
+  - 可重入锁
+  - 可中断锁
+
+  - 读锁
+  - 写锁
+
+  - 公平锁
+  - 非公平锁
+
+  - 乐观锁
+  - 悲观锁
+
+  * 偏向锁
+  * 轻量级锁
+  * 自旋锁
+  * 重量级锁
+
+- volatile 原理
+- synchronized 原理
+- Lock 原理
+
+#### 多线程
+
+- 线程实现
+
+  - 继承 Thread
+  - 实现 Runnable
+  - 实现 Callerable
+  - ThreadPoolExecutor 线程池
+
+- 继承 Thread
+- 实现 Runnable
+- 实现 Callerable
+- ThreadPoolExecutor
+
+- 线程间通信
+
+  - Thread.sleep(time)
+  - thread.join([time])
+  - thread.yield()
+
+  - object.wait()
+  - object.notify()/notifyall()
+
+  - CountdownLatch
+
+- 线程中断
+
+- ThreadLocal
+
+#### 原子类
+
+#### 阻塞队列
 
 
 ## JVM
