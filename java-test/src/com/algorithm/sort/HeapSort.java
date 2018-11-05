@@ -18,7 +18,7 @@ public class HeapSort {
 
     public static void heapsort(int[] data) {
         buildMaxHeapify(data);
-        heapSort(data);
+        sort(data);
     }
 
     private static void buildMaxHeapify(int[] data) {
@@ -45,7 +45,7 @@ public class HeapSort {
         }
     }
 
-    private static void heapSort(int[] data) {
+    private static void sort(int[] data) {
         for (int i = data.length - 1; i > 0; i--) {
             ArrayMethod.swap(data, 0, i);
             maxHeapify(data, i, 0);

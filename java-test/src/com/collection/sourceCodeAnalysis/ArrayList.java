@@ -104,7 +104,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
         modCount++;
 
         // 容量不够了，需要扩容
-        if (minCapacity - elementData.length > 0)
+        if (minCapacity - elementData.length > 0)  // 如果其元素个数大于其容量，则进行扩容。
             grow(minCapacity);
     }
  

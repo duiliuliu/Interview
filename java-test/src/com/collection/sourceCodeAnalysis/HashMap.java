@@ -98,8 +98,9 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, Clone
 
     /**
      * hash方法
-     * 获取hashcode后进一步hash计算(高 16bit 和低 16bit 异或了一下)
-     * 让更多的位参与hash运算
+     * key 的 hash值的计算是通过hashCode()的高16位异或低16位实现的：(h = k.hashCode()) ^ (h >>> 16)
+     * 主要是从速度、功效、质量来考虑的，这么做可以在数组table的length比较小的时候
+     * 也能保证考虑到高低Bit都参与到Hash的计算中，同时不会有太大的开销
      */
     static final int hash(Object key) {
         int h;
@@ -143,6 +144,7 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, Clone
     /**
      * 检测参数是否为2的n次幂，且不能为负数，不能超过最大容量
      * 中间过程的目的是使n的二进制低位数全部变为1，比如：10,11变为11；100,101,110,111变为111. 然后+1即为2的n次幂
+     * 返回的值是大于等于initialCapacity 的最小2的幂数值
      */
     static final int tableSizeFor(int cap) {
         int n = cap - 1;
@@ -156,11 +158,17 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, Clone
 
     /* ---------------- Fields -------------- */
 
+    // 存储元素（位桶--Node<K,V>节点）的数组，总是2的幂次倍
     transient Node<K, V>[] table;
+    // 由hashMap 中 Node<K,V>节点构成的 set集合
     transient Set<Map.Entry<K, V>> entrySet;
+    // 存放元素（键-值对）的个数，注意这个不等于数组的长度
     transient int size;
+    // 每次扩容和更改map结构的计数器，fail-fast机制
     transient int modCount;
+    // 临界值 当实际大小size(容量*填充因子)超过临界值时，会进行扩容
     int threshold;
+    // 记录 hashMap 装载因子
     final float loadFactor;
 
     /* ---------------- Public operations -------------- */
@@ -210,21 +218,25 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, Clone
 
     /**
      * Implements Map.putAll and Map constructor
-     * 便利map，一次传入每个值
+     * 将m中的所有值存入本hashmap实例中
      */
     final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
         int s = m.size();
         if (s > 0) {
+            // 判断table是否已经初始化
             if (table == null) { // pre-size
+                // 根据待插入的map的size计算打算创建的hashmap容量
                 float ft = ((float) s / loadFactor) + 1.0F;
                 int t = ((ft < (float) MAXIMUM_CAPACITY) ? (int) ft : MAXIMUM_CAPACITY);
+                // threshold打算创建的hashmap存储容量
                 if (t > threshold)
                     threshold = tableSizeFor(t);
-            } else if (s > threshold)
+            } else if (s > threshold)   // 判断待插入的map大小是否大于threshold，若大于则先进行扩容
                 resize();
             for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
                 K key = e.getKey();
                 V value = e.getValue();
+                // 实际也是调用　putVal　函数进行元素的插入
                 putVal(hash(key), key, value, false, evict);
             }
         }

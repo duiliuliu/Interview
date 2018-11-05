@@ -18,6 +18,7 @@
 - [java反射](#java反射)
 - [java并发编程](#java并发编程)
 - [JVM](#JVM)
+- [newJVM](#newJVM)
 - [分布式](#分布式)
 - [MySql](#MySql)
 - [MongoDB](#MongoDB)
@@ -380,11 +381,39 @@ TCP(Transmission Control Protocol 传输控制协议)是一种面向连接的、
 
 - 滑动窗口
 
+  缓存
+
 - 流量控制
+
+  通过控制滑动窗口控制流量
 
 - 拥塞控制
 
-- 延迟应答
+  - 慢开始
+
+    ![TCP慢开始模型](./images/TCP慢开始模型.png)
+
+    一开始从 1 开始，慢慢来，指数增长
+
+  - 拥塞避免
+
+    乘法减小
+    加法增大
+
+  - 快重传
+
+    三次重复确认回复则断定分组缺失，立即重传丢失的报文段，而不必等待重传计时器超时
+
+  - 快恢复
+
+    乘法减小
+    加法增大
+
+当 cwnd<ssthresh 时，使用慢开始算法。
+
+当 cwnd>ssthresh 时，改用拥塞避免算法。
+
+当 cwnd=ssthresh 时，慢开始与拥塞避免算法任意。
 
 
 ## 数据结构&算法
@@ -1588,124 +1617,243 @@ http://www.importnew.com/12399.html
 
   > https://www.cnblogs.com/kuoAT/p/6771653.html
 
+  ArratList 是通过数组结构实现的，默认的初始容量为 10.在进行构造 ArrayList 对象时，若不指定容量，则选择容量为默认容量 10，不过此时只是初始化一个空数组(也不是初始化，其内部一直保留一个 final 修饰的空数组，只是让 elementData 指向这个空数组。原因可能是一直维护一个空数组比新建一个空数组更高效吧)
+
+  - ArrayList 扩容
+
+    对于 ArrayList，其容量是内部 elementData 数组的长度，在 add 元素的时候，倘若元素索引+1 大于 elementData 的长度则会进行扩容，即内部数组容纳不了的时候会进行扩容。
+
+    ```
+    public boolean add(E e) {
+        ensureCapacityInternal(size + 1); // Increments modCount!!
+        elementData[size++] = e;
+        return true;
+    }
+    ```
+
+    扩容时候会按照之前容量的 1.5 倍进行扩容。
+
   **ArrayList 什么时候扩容**
+
+  元素个数大于当前容量的时候进行扩容，容量变为之前的 1.5 倍
+
   **ArrayList 与 Array**
 
-- LinkedList
-- vector
+  ArrayList 是 Array 的复杂版本
+  ArrayList 内部封装了一个 Object 类型的数组，从一般的意义来说，它和数组没有本质的差别，甚至于 ArrayList 的许多方法，如 Index、IndexOf、Contains、Sort 等都是在内部数组的基础上直接调用 Array 的对应方法。
+
+  1. 效率：Array 较为高效，但是其容量固定且无法改变
+     而 ArrayList 容量可以动态增长，但相对效率低
+  2. 类型识别：ArrayList 存入对象时，将所有对象存为 Object 类型，在运行是需要强制类型转换。或者运用泛型进行限制类型。而且不能够添加基本类型的元素。
+  3. 工具类： J 对数组的一些基本操作，像排序、搜索与比较等是很常见的。因此在 Java 中提供了 Arrays 类协助这几个操作：sort(),binarySearch(),equals(),fill(),asList().
+
+     同样为集合提供了一些集合间的通用函数。
+
+* LinkedList
+* vector
 
 #### Map
 
 - HashMap
 
-  HashMap 是基于哈希表的 map 接口的非同步实现
-  简单说就是数组+链表构成
-  在 HashMap 初始化的时候会初始化一个 Entry[]数组，用来存储 key、value 对，当需要存储一个 Entry 对象，会经过 hash 算法来确定数组中的位置，产生冲突后，从头部插入当前 entry 对象，原有 Entry 链串接其后。
+  HashMap 是基于散列表的 map 接口的非同步实现。散列表使用数组结构，使用链地址法解决冲突。
 
-  HashMap 允许 null 值 null 键，键具有唯一性，所以允许一个 null 键，而值就无所谓了。相比较 HashTable，HashTable 不允许 null 值 null 键，null 值与 null 键都会抛出 NullPointException。
+  HashMap 构造的时候可以指定容量与负载因子，默认容量为 16（1<<4 即 2^4），默认负载因子为 0.75。在我们构造时指定容量后，为了更好的 hash，会将容量进行扩充，使其变为大于等于该容量的最小的 2 的幂数值(此处通过对低位值进行无符号右移，将低位都填充为 1，最后结果+1，得出最小 2 的幂数值)
 
-  HashMap 的初始容量为 16，之后以当前容量的 2 倍进行扩充。其容量始终为 2 的 n 次幂，目的是为了提高 hash 算法确定位置时的效率，通常得到 hashcode 会对当前容量进行取模运算得到散列表中存储位置，而除法运算相对效率较低，容量设置为 2 的 n 次幂便可以通过位运算快速得到模，具体位运算为 hash 与 当前容量-1 进行与运算。
-  而 HashTable 的初始容量为 11，之后的扩容变为原来的 2N+1,取模运算哪儿运用除法，效率低。
+  - put 函数
 
-  HashMap 实现了 Iterable，HashTable 实现了 Iterable 与 Enumration(历史遗留问题)
+    ```
+    /**
+     * 指定节点 key,value，向 hashMap 中插入节点
+     */
+    public V put(K key, V value) {
+        // 注意待插入节点hash值的计算，调用了hash(key) 函数
+        // 实际调用 putVal() 进行节点的插入
+        return putVal(hash(key), key, value, false, true);
+    }
+    ```
 
-  HashMap 不保证存储顺序，LinkedHashMap 保证存储顺序，其内部实现了双向链表以保证顺序
+    put 函数实质上调用的时 putVal 函数，此处我们先看看 hash(key).
 
-  HashMap 是线程不安全的，如果要线程安全，可以选择 HashTable、collections.synchronizedHashMap()包装或 concurrentHashMap,推荐 concurrentHashMap。因为内部实现为分段加锁，效率较高。
+    hash 算法是对 key 的 hashcode()的高 16 位与低 16 位异或得到的，目的是数组 table 的 length 比较小的时候让更多的位参与 hash 运算中。
 
-  构造函数
-  HashMap()
-  HashMap(int capacity)
-  HashMap(int capacity, float loadFactory)
-  HashMap(Map<? extends K, ?extends V> map)
-  继承自 abstractMap 类，实现 Map 接口
+    ```
+    static final int hash(Object key) {
+        int h;
+        return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+    }
+    ```
 
-  hash()
-  在 get、put 计算下标时，先对 hashCode 进行 hash 操作，然后再通过 hash 值进一步操作.
+    对于 key value 的 put 操作，初始进行判断 table 是否初始化或者长度为 0 的情况下需要对 table 进行扩容
 
-  > 高 16bit 和低 16bit 异或了一下。设计者还解释到因为现在大多数的 hashCode 的分布已经很不错了，就算是发生了碰撞也用 O(logn)的 tree 去做了。仅仅异或一下，既减少了系统的开销，也不会造成因为高位没有参与下标的计算(table 长度比较小)时，引起的碰撞。
+    然后呢使用过 hash 值计算 key 下标位置，此处是通过 hash&n-1 进行计算，由于 n 一定是 2 的幂数值，所以这个操作相当于对 hash 取模，但是位运算比除法运算更加高效。
 
-        ```
-        static final int hash(Object key) {
-            int h;
-            return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
-        }
-        ```
+    在此之后会进行三次判断
 
-  indexFor(int h, int length)
-  目前的 table 长度 n 为 2 的次幂，所以计算下标的时候，可使用按位与&代替取模%：
+    1. 下标位置处是否有值
 
-        ```
-        return h & (length-1);
-        ```
+       无值的话直接插入，有值则继续往下判断
 
-  get()
-  获取 key 对应的 value
-  传入参数 key
-  通过 key 的 hash 码计算出数组中的位置
-  判断是否有值，有的话进行遍历(链表)
-  判断值返回
+    2. 下标位置处第一个元素 是否为 所要插入的 key， **对于可以的比较总是 先比较 hash 值是否相等，再接着使用 == 与 equals 分别进行比较**
 
-        ```
-        public V get(Object key) {
-            if (key == null)
-                return getForNullKey();
+       若果是所要插入的 key，则将值替换掉，返回替换掉的值
 
-            int hash = hash(key);
+    3. 是否 TreeNode 的子类
 
-            for (Entry<K,V> e = table[indexFor(hash, table.length)];
-                e != null;
-                e = e.next) {
-                Object k;
-                if (e.hash == hash && ((k = e.key) == key || key.equals(k)))
-                    return e.value;
-            }
-            return null;
-        }
-        ```
+       倘若是树结构，则调用 putTreeVal 方法进行 put
 
-  java8 中链表长度大于 8 时，则转化为红黑树存储
+    4. 到了这儿只能是链表结构了
 
-        ```
-        public V get(Object key) {
-            Node<K,V> e;
-            return (e = getNode(hash(key), key)) == null ? null : e.value;
-        }
+       此处插入做法是从尾部插入
 
-        final Node<K,V> getNode(int hash, Object key) {
-            Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
-            // table不为空 && table长度大于0 && table索引位置(根据hash值计算出)不为空
-            if ((tab = table) != null && (n = tab.length) > 0 &&
-                (first = tab[(n - 1) & hash]) != null) {
-                if (first.hash == hash && // always check first node
-                    ((k = first.key) == key || (key != null && key.equals(k))))
-                    return first;	// first的key等于传入的key则返回first对象
-                if ((e = first.next) != null) { // 向下遍历
-                    if (first instanceof TreeNode)  // 判断是否为TreeNode
-                        // 如果是红黑树节点，则调用红黑树的查找目标节点方法getTreeNode
-                        return ((TreeNode<K,V>)first).getTreeNode(hash, key);
-                    // 走到这代表节点为链表节点
-                    do { // 向下遍历链表, 直至找到节点的key和传入的key相等时,返回该节点
-                        if (e.hash == hash &&
-                            ((k = e.key) == key || (key != null && key.equals(k))))
-                            return e;
-                    } while ((e = e.next) != null);
+       先遍历链表，对每个节点进行判断是否为所要插入的 key ， 是则替换，跳出遍历
+       直到尾部，然后创建新的 node，并插入尾部
+       倘若链表的长度大于 8，则转化为树结构
+
+
+    ```
+    final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+                   boolean evict) {
+        Node<K,V>[] tab; Node<K,V> p; int n, i;
+        // 若table未初始化或者长度为0，调用resize函数进行扩容
+        if ((tab = table) == null || (n = tab.length) == 0)
+            n = (tab = resize()).length;
+        /* 根据 hash 值确定节点在数组中的插入位置，若此位置没有元素则进行插入，
+           注意确定插入位置所用的计算方法为　(n - 1) & hash,由于　n 一定是２的幂次，这个操作相当于hash % n  位运算更快*/
+        if ((p = tab[i = (n - 1) & hash]) == null)
+            // 空桶，创建新的键值对节点，放入table数组中
+            tab[i] = newNode(hash, key, value, null);
+        else {
+            // 说明待插入位置存在元素 即tab[i]不为空，需要组成单链表或红黑树
+            Node<K,V> e; K k;
+            // 与桶（*bucket*）中首元素相比，如果 hash、key 均等，说明待插入元素和第一个元素相等，直接更新
+            if (p.hash == hash &&
+                ((k = p.key) == key || (key != null && key.equals(k))))
+                // 此时p指的是table[i]中存储的那个Node，如果待插入的节点中hash值和key值在p中已经存在，则将p赋给e
+                e = p;
+            // 当前桶（*bucket*）中无该键值对，且桶是红黑树结构，按照红黑树结构插入
+            else if (p instanceof TreeNode)
+                e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+            else {// 当前桶（*bucket*）中无该键值对，且桶（*bucket*）是链表结构，按照链表结构插入到尾部
+                // 在链表最末插入结点
+                for (int binCount = 0; ; ++binCount) {
+                    // 遍历到链表的尾部
+                    if ((e = p.next) == null) {
+                        // 创建链表节点并插入尾部
+                        p.next = newNode(hash, key, value, null);
+                        // 结点数量达到阈值，转化为红黑树
+                        if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                            treeifyBin(tab, hash);
+                        break;
+                    }
+                    // 判断链表中结点的 key 值与插入的元素的 key 值是否相等
+                    if (e.hash == hash &&
+                        ((k = e.key) == key || (key != null && key.equals(k))))
+                        break;
+                    // 用于遍历桶中的链表，与前面的e = p.next组合，可以遍历链表将；即p调整为下一个节点
+                    p = e;
                 }
             }
-            return null;    // 找不到符合的返回空
+            // 表示在桶（*bucket*）中找到key值、hash值与插入元素相等的结点
+            if (e != null) { // existing mapping for key
+                // 记录e的value
+                V oldValue = e.value;
+                // 判断是否修改已插入节点的value
+                if (!onlyIfAbsent || oldValue == null)
+                    // 用新值替换旧值
+                    e.value = value;
+                // 访问后回调
+                afterNodeAccess(e);// 空函数，由用户根据需要覆盖
+                return oldValue;
+            }
         }
-        ```
+        // 结构性修改
+        ++modCount;
+        // 键值对数目超过阈值时，进行 resize 扩容
+        if (++size > threshold)
+            resize();
+        // 插入后回调
+        afterNodeInsertion(evict);// 空函数，由用户根据需要覆盖
+        return null;
+    }
+    ```
 
-  put()
-  校验 table 是否为空或者 length 为 0，是的话则调用 resize 进行初始化
-  通过**hash 值计算索引位置**，将该索引位置的头节点赋值给 p 节点，如果该索引位置节点为空则使用传入的参数新增一个节点并放在该索引位置
-  判断 p 节点的 key 和 hash 值是否跟传入的相等，如果相等, 则 p 节点即为要查找的目标节点，将 p 节点赋值给 e 节点
-  如果 p 节点不是目标节点，则**判断 p 节点是否为 TreeNode**，如果是则调用红黑树的 putTreeVal 方法 查找目标节点
-  走到这代表 p 节点为普通链表节点，则调用普通的链表方法进行查找，并定义变量 binCount 来统计该链表的节点数
-  如果 p 的 next 节点为空时，则代表找不到目标节点，则新增一个节点并插入链表尾部，并校验节点数是否超过 8 个，如果超过则调用 treeifyBin 方法（见下文代码块 6）将链表节点转为红黑树节点
-  如果遍历的 e 节点存在 hash 值和 key 值都与传入的相同，则 e 节点即为目标节点，跳出循环
-  如果 e 节点不为空，则**代表目标节点存在**，使用传入的 value 覆盖该节点的 value，并返回**oldValue**
-  如果插入节点后节点数超过阈值，则调用 resize 方法（见下文 resize 方法）进行扩容
+- get 函数
+
+  ```
+   public V get(Object key) {
+      Node<K,V> e;
+      return (e = getNode(hash(key), key)) == null ? null : e.value;
+  }
+  ```
+
+  实际上是调用 getNode 通过 key 的 hash 值与 key 进行查找.
+
+  与 put 函数有点类似，要经历几重判断
+
+  1. table 已经初始化且长度大于零 并且 hash 取模(位运算)后得出的位置处有值
+  2. 对比第一个节点，(比较时比较 hash 值与 key== ** 与 key.equals(**))
+  3. 判断是否树结构
+  4. 沿着链表查找
+  5. 没找到返回 null
+
+  ```
+  final Node<K,V> getNode(int hash, Object key) {
+      Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
+      // table已经初始化，长度大于0，根据hash寻找table中的项也不为空
+      if ((tab = table) != null && (n = tab.length) > 0 &&
+          (first = tab[(n - 1) & hash]) != null) {
+          // 桶中第一项(数组元素)相等
+          if (first.hash == hash && // always check first node
+              ((k = first.key) == key || (key != null && key.equals(k))))
+              return first;
+          // 桶中不止一个结点
+          if ((e = first.next) != null) {
+              if (first instanceof TreeNode)
+                  // 若定位到的节点是　TreeNode 节点，则在树中进行查找
+                  return ((TreeNode<K,V>)first).getTreeNode(hash, key);
+              do {  // 否则在链表中进行查找
+                  if (e.hash == hash &&
+                      ((k = e.key) == key || (key != null && key.equals(k))))
+                      return e;
+              } while ((e = e.next) != null);
+          }
+      }
+      return null;
+  }
+  ```
+
+**HashMap 与 HashTable 的区别**
+
+1. hashMap 是非线程安全的，而 hashTable 线程安全
+2. hashmap 允许 null 值 null 键，而 hashtable null 值与 null 键抛出空指针异常
+3. hashmap 的初始容量为 16，每次扩容是 2 的 n 次幂，而 hashtable 的初始容量为 11，每次扩容是 2n+1
+4. 计算元素位置是，hashmap 采用位运算，而 hashtable 使用取模除法运算
+5. hashmap 实现了 iterable，而 hashtable 实现了 iterable 与 Enumration
+
+**hashmap 如何线程安全**
+
+HashMap 是线程不安全的，如果要线程安全，可以选择 HashTable、collections.synchronizedHashMap()包装或 concurrentHashMap,推荐
+
+**hash 冲突发生的几种情况：**
+
+1. 两节点　 key 值相同（hash 值一定相同），导致冲突；
+2. 两节点　 key 值不同，由于 hash 函数的局限性导致 hash 值相同，冲突；
+3. 两节点　 key 值不同，hash 值不同，但 hash 值对数组长度取模后相同，冲突；
+
+**1.8 版本与 1.7 版本的不同**
+增加了红黑树结构
+1.7 版本得冲突产生后会再链表头部插入
+
+**1.8 的优化--扩容**
+
+因为我们使用 2 的 n 次幂的扩展，所以元素的位置要么再原位置，要么在原位置再移动 2 的 n 次幂的位移
+
+![hashmap-resize](./images/hashmap-resize.png)
+
+**hashmap 为什么线程不安全**
+
+两个线程同时 put 时，恰好都再同一条链上，很可能丢失更新(同时读取到了链表尾部，第二个线程的更新会覆盖掉第一个线程的更新)
 
 
 ## javaIO
@@ -2322,6 +2470,8 @@ synchronized 是 jvm 层面的锁，是 Java 的内置特性
 
 #### Lock
 
+https://www.cnblogs.com/zouzz/p/6593748.html
+https://blog.csdn.net/qpzkobe/article/details/78586619
 > https://www.cnblogs.com/aishangJava/p/6555291.html
 
 #### Synchronized 与 ReenTrantLock
@@ -2911,7 +3061,7 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
 
           准备阶段是正式为类变量分配并设置类变量初始值的阶段，这些内存都将在方法区中进行分配
 
-          这时候进行内存分配的仅包括类变量(被static修饰的变量),而不包括实例变量,实例变量将会在对象实例化时随着对象一起分配在Java堆中;这里所说的初始值“通常情况”是数据类型的零值，假如:
+          这时候进行内存分配的仅包括类变量(被static修饰的变量),而不包括实例变量,实例变量将会在对象实例化时随着对象一起分配在Java堆中;这里所说的初始值"通常情况"是数据类型的零值，假如:
 
            public static int value = 123;
 
@@ -2964,11 +3114,11 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
             – 创建类的实例，也就是 new 的方式
             – 访问某个类或接口的静态变量，或者对该静态变量赋值
             – 调用类的静态方法
-            – 反射（如 Class.forName(“com.shengsiyuan.Test”)）
+            – 反射（如 Class.forName("com.shengsiyuan.Test")）
             – 初始化某个类的子类，则其父类也会被初始化
             – Java 虚拟机启动时被标明为启动类的类（Java Test），直接使用 java.exe 命令来运行某个主类
 
-- 注意，对于这五种会触发类进行初始化的场景，虚拟机规范中使用了一个很强烈的限定语：“有且只有”，这五种场景中的行为称为对一个类进行*主动引用*。除此之外，所有引用类的方式，都不会触发初始化，称为*被动引用*
+- 注意，对于这五种会触发类进行初始化的场景，虚拟机规范中使用了一个很强烈的限定语："有且只有"，这五种场景中的行为称为对一个类进行*主动引用*。除此之外，所有引用类的方式，都不会触发初始化，称为*被动引用*
 - 被动引用的几种经典场景
 
   > https://github.com/duiliuliu/Interview/tree/master/test/src/com/javaBasic/classInitial
@@ -3035,7 +3185,7 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
     hello world
     ```
 
-    述代码运行之后，只输出 “hello world”，这是因为虽然在 Java 源码中引用了 PassiveReferenceParent 类中的常量 CONSTANT，但是编译阶段将此常量的值“hello world”存储到了 NotInitialization 常量池中，对常量 PassiveReferenceParent.CONSTANT 的引用实际都被转化为 NotInitialization 类对自身常量池的引用了。也就是说，实际上 NotInitialization 的 Class 文件之中并没有 PassiveReferenceParent 类的符号引用入口，这两个类在编译为 Class 文件之后就不存在关系了。
+    述代码运行之后，只输出 "hello world"，这是因为虽然在 Java 源码中引用了 PassiveReferenceParent 类中的常量 CONSTANT，但是编译阶段将此常量的值"hello world"存储到了 NotInitialization 常量池中，对常量 PassiveReferenceParent.CONSTANT 的引用实际都被转化为 NotInitialization 类对自身常量池的引用了。也就是说，实际上 NotInitialization 的 Class 文件之中并没有 PassiveReferenceParent 类的符号引用入口，这两个类在编译为 Class 文件之后就不存在关系了。
 
 - 类加载机制
 
@@ -3056,34 +3206,34 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
 
   **java new 一个对象后创建了几个对象**
 
-  - java String s = new String(“abc”)对象后创建了几个对象
+  - java String s = new String("abc")对象后创建了几个对象
 
     > https://juejin.im/entry/5a4ed02a51882573541c29d5
 
     创建了两个对象，一个对象时字符串‘abc’在常量池中，第二个对象是 Java heap 中的 String 对象
 
-    使用 ” ” 双引号创建 ： String s1 = “first”;
-    使用字符串连接符拼接 ： String s2=”se”+”cond”;
-    使用字符串加引用拼接 ： String s12=”first”+s2;
-    使用 new String(“”)创建 ： String s3 = new String(“three”);
-    使用 new String(“”)拼接 ： String s4 = new String(“fo”)+”ur”;
-    使用 new String(“”)拼接 ： String s5 = new String(“fo”)+new String(“ur”);
+    使用 " " 双引号创建 ： String s1 = "first";
+    使用字符串连接符拼接 ： String s2="se"+"cond";
+    使用字符串加引用拼接 ： String s12="first"+s2;
+    使用 new String("")创建 ： String s3 = new String("three");
+    使用 new String("")拼接 ： String s4 = new String("fo")+"ur";
+    使用 new String("")拼接 ： String s5 = new String("fo")+new String("ur");
 
     ![String对象创建模型](./images/String对象创建模型.png)
 
     Java 会确保一个字符串常量只有一个拷贝。
 
-    s1 ： 中的”first” 是字符串常量，在编译期就被确定了，先检查字符串常量池中是否含有”first”字符串,若没有则添加”first”到字符串常量池中，并且直接指向它。所以 s1 直接指向字符串常量池的”first”对象。
+    s1 ： 中的"first" 是字符串常量，在编译期就被确定了，先检查字符串常量池中是否含有"first"字符串,若没有则添加"first"到字符串常量池中，并且直接指向它。所以 s1 直接指向字符串常量池的"first"对象。
 
-    s2 ： “se”和”cond”也都是字符串常量，当一个字符串由多个字符串常量连接而成时，它自己肯定也是字符串常量，所以 s2 也同样在编译期就被解析为一个字符串常量，并且 s2 是常量池中”second”的一个引用。
+    s2 ： "se"和"cond"也都是字符串常量，当一个字符串由多个字符串常量连接而成时，它自己肯定也是字符串常量，所以 s2 也同样在编译期就被解析为一个字符串常量，并且 s2 是常量池中"second"的一个引用。
 
-    s12 ： JVM 对于字符串引用，由于在字符串的”+”连接中，有字符串引用存在，而引用的值在程序编译期是无法确定的，即("first"+s2)无法被编译器优化，只有在程序运行期来动态分配使用 StringBuilder 连接后的新 String 对象赋给 s12。
+    s12 ： JVM 对于字符串引用，由于在字符串的"+"连接中，有字符串引用存在，而引用的值在程序编译期是无法确定的，即("first"+s2)无法被编译器优化，只有在程序运行期来动态分配使用 StringBuilder 连接后的新 String 对象赋给 s12。
     (编译器创建一个 StringBuilder 对象，并调用 append()方法，最后调用 toString()创建新 String 对象，以包含修改后的字符串内容)
 
     s3 ： 用 new String() 创建的字符串不是常量，不能在编译期就确定，所以 new String() 创建的字符串不放入常量池中，它们有自己的地址空间。
-    但是”three”字符串常量在编译期也会被加入到字符串常量池（如果不存在的话）
+    但是"three"字符串常量在编译期也会被加入到字符串常量池（如果不存在的话）
 
-    s4 ： 同样不能在编译期确定，但是”fo”和”ur”这两个字符串常量也会添加到字符串常量池中，并且在堆中创建 String 对象。（字符串常量池并不会存放”four”这个字符串）
+    s4 ： 同样不能在编译期确定，但是"fo"和"ur"这两个字符串常量也会添加到字符串常量池中，并且在堆中创建 String 对象。（字符串常量池并不会存放"four"这个字符串）
 
     s5 ： 原理同 s4
 
@@ -3122,6 +3272,8 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
   - 非静态内部类持有外部类的引用　 context 泄露
 
 #### 垃圾回收
+
+jvm 内存区域分为方法区，本地方法栈，虚拟机栈，堆，程序计数器
 
 - 方法区
 
@@ -3177,7 +3329,7 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
 
   - serial 串行 单线程 Client 模式下的默认新生代收集器 优点：简单高效
   - parNew serial 的多线程版本
-  - Parallel scavenge 多线程 “吞吐量优先”收集器 这里的吞吐量指 CPU 用于运行用户代码的时间占总时间的比值
+  - Parallel scavenge 多线程 "吞吐量优先"收集器 这里的吞吐量指 CPU 用于运行用户代码的时间占总时间的比值
   - CMS CMS（Concurrent Mark Sweep），Mark Sweep 指的是标记 - 清除算法
   - serial Old Serial 收集器的老年代版本 Client 模式下的虚拟机使用
   - Parallel Old Parallel Scavenge 收集器的老年代版本
@@ -3247,6 +3399,91 @@ Class 文件由类装载器装载后，在 JVM 中将形成一份描述 Class �
 
 - 回收器选择
 - 辅助信息
+
+
+## newJVM
+
+JVM(java virtual machine)是 Java 虚拟机的缩写，是 Java 程序运行的平台
+
+#### 内存模型
+
+![JVM内存模型](./images/JVM内存模型.png)
+
+JVM 分为方法区，虚拟机栈，本地方法栈，程序计数器，堆。其中，虚拟机栈与本地方法栈，程序计数器是属于线程私有的，只存活于该线程的生命周期内，各个线程共享方法区与堆。
+
+- 程序计数器
+
+  记录正在执行的虚拟即字节码指令的地址
+
+- 虚拟机栈
+
+  即 Java 方法栈。每个方法执行的时候会创建一个存放 局部变量(对象引用)、操作数栈、常量池引用等信息，方法的执行就是虚拟栈中的栈帧出栈、入栈的过程。
+
+  ![虚拟机栈模型](./images/虚拟机栈模型.png)
+
+  可以通过 -Xss 这个虚拟机参数来调整每个线程虚拟机栈的内存大小
+
+  `java -Xss 128k HackTheJava`
+
+  当 Xss 值越大，每个线程虚拟机栈的内存也就越大，线程所占的空间也就越大，系统所容纳的线程就变得越少了。容易出现 OutofMemoryEror(系统内存不足) 错误
+  当 Xss 值越小，栈中存储得信息也就越少，容易出现 StackOverflowError(栈溢出) 错误
+
+  StackOverflowError --> 栈内存过小，递归过深
+  OutofMemoryError --> 系统空间不足，无法申请到足够的内存
+
+- 本地方法栈
+
+  类似于虚拟机栈，不过是为本地方法(c++)服务的。
+
+- 堆
+
+  大部分对象的存储地，是垃圾收集的主要区域
+
+  主要分为新生代与老年代两大块，其中新生代占堆区域的 1/3.新生代用来存储新建立的对象，年老代存储经过多次垃圾回收后依然存活的对象。
+
+  将堆分块是因为 Java 垃圾收集算法使用的是分代回收，采用分而治之的思想，吧不同生命周期的对象放在不同代上。越是新生的对象它的生命周期也就越短，越是年老的对象，生存能力越强，所以老年代的空间是新生代空间的两倍
+
+  新生代又分为 Eden 区域与两个 survival，空间比例为 8:1:1,同样是因为新生的对象生命周期短，所以 eden 区域较大。两个 survival 是为了方便进行垃圾回收复制算法。
+
+  可以通过 -Xmx 和 -Xms 调整堆内存的大小
+
+  `java -Xmx3550m -Xms3550m`
+
+      -Xmx3550m: 设置最大可用内存为 3550m
+      -xms3550m：设置 JVM 初始内存为 3550m。此值可以设置与-Xmx 相同，以避免每次垃圾回收完后 JVM 重新分配内存 FFF
+
+  -XX:NewSize 和-XX:MaxNewSize
+
+      用于设置年轻代的大小，建议设为整个堆大小的 1/3 或者 1/4,两个值设为一样大。
+
+  -XX:SurvivorRatio
+
+      用于设置 Eden 和其中一个 Survivor 的比值，这个值也比较重要。
+
+  -XX:+PrintTenuringDistribution
+
+      这个参数用于显示每次Minor GC时Survivor区中各个年龄段的对象的大小。
+
+  -XX:InitialTenuringThreshol 和-XX:MaxTenuringThreshold
+
+      用于设置晋升到老年代的对象年龄的最小值和最大值，每个对象在坚持过一次Minor GC之后，年龄就加1。
+
+  - 不需要连续内存，可以动态扩展，增加内存失败后 --> OutofMemoryError
+
+- 方法区
+
+  用来存储 已被加载的类信息、常量、静态变量、即时编译后的代码等数据
+
+  垃圾回收时主要是对常量池的回收和对类的卸载
+
+  - 不需要连续内存，可以动态扩展，增加内存失败后 --> OutofMemoryError
+
+#### 垃圾回收
+
+#### 类加载
+
+- 过程
+- 加载机制
 
 
 ## 分布式
@@ -3836,6 +4073,12 @@ https://blog.csdn.net/gaifuxi9518/article/details/81038818
 #### scrapy
 
 #### scrapy-redis
+
+#### WSGI
+
+WSGI 是 Web 服务器网关接口。它是一个规范，描述了 Web 服务器如何与 Web 应用程序通信，以及 Web 应用程序如何链接在一起以处理一个请求。
+
+WSGI 是一个详细描述的 Python 标准 [PEP 3333](https://www.python.org/dev/peps/pep-3333)。
 
 #### 面试题
 
