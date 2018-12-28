@@ -649,7 +649,108 @@ TCP(Transmission Control Protocol 传输控制协议)是一种面向连接的、
         }
         ```
 
+#### 树
+
+|          |                                                                                                                                 |
+|----------|---------------------------------------------------------------------------------------------------------------------------------|
+| 二叉树      | ▪ 二叉树	▪ 二叉查找树	▪ 笛卡尔树	▪ Top tree <br> ▪ T树                                                                                       |
+| 自平衡二叉查找树 | ▪ AA树	▪ AVL树	▪ 红黑树	▪ 伸展树 <br>  ▪ 树堆	▪ 节点大小平衡树                                                                                   |
+| B树       | ▪ B树	▪ B+树	▪ B*树	▪ Bx树 <br> ▪ UB树	▪ 2-3树	▪ 2-3-4树	▪ (a,b)-树 <br> ▪ Dancing tree	▪ H树                                            |
+| Trie     | ▪ 前缀树	▪ 后缀树	▪ 基数树                                                                                                               |
+| 空间划分树    | ▪ 四叉树	▪ 八叉树	▪ k-d树	▪ vp-树 <br> ▪ R树	▪ R*树	▪ R+树	▪ X树 <br> ▪ M树	▪ 线段树	▪ 希尔伯特R树	▪ 优先R树                                            |
+| 非二叉树     | ▪ Exponential tree	▪ Fusion tree	▪ 区间树	▪ PQ tree <br> ▪ Range tree	▪ SPQR tree	▪ Van Emde Boas tree                             |
+| 其他类型     | ▪ 堆	▪ 散列树	▪ Finger tree	▪ Metric tree <br> ▪ Cover tree	▪ BK-tree	▪ Doubly-chained tree	▪ iDistance <br> ▪ Link-cut tree	▪ 树状数组 |
+
+	
+
 #### 搜索二叉树 (Binary Search Tree)
+
+二叉树是每个节点最多有两个子节点的树。
+
+- 相关概念
+
+  - 孩子节点
+  - 双亲节点
+  - 兄弟节点
+  - 树的深度 即树高
+  - 节点的度 节点子树的个数
+  - 有序树
+  - 无序树
+  - 叶子节点 度为 0 的节点
+
+- 特性：
+
+  - 在非空二叉树中，第 i 层的节点总数不超过 2^(i-1)
+  - 深度为 h 的二叉树最多有 2^h-1 个节点， 最少有 h 个节点(链状了)
+  - 具有 n 个节点的完全二叉树的深度为 [logn]+1 (logn 向下取整)
+  - 给定 n 个节点，能构成 f(n) 个节点 ![卡兰特数](./images/卡兰特数.png)
+
+- 二叉树遍历
+
+  设 L、D、R 分别表示遍历左子树、访问根结点和遍历右子树， 则对一棵二叉树的遍历有三种情况：DLR（称为先根次序遍历），LDR（称为中根次序遍历），LRD （称为后根次序遍历）。
+
+  - 先序遍历
+
+    ```
+    void preTraversal(TreeNode root){
+      if (root == null) {
+        return;
+      }
+
+      print(root.value);
+      preTraversal(node.leftChild);
+      preTraversal(node.rightChild);
+    }
+    ```
+
+  - 中序遍历
+
+    ```
+    void inTraversal(TreeNode root){
+      if (root == null) {
+        return;
+      }
+
+      inTraversal(node.leftChild);
+      print(root.value);
+      inTraversal(node.rightChild);
+    }
+    ```
+
+  - 后序遍历
+
+    ```
+    void postTraversal(TreeNode root){
+      if (root == null) {
+        return;
+      }
+
+      postTraversal(node.leftChild);
+      postTraversal(node.rightChild);
+      print(root.value);
+    }
+    ```
+
+  - 层次遍历
+
+    即按照层次访问，通常用队列来做。访问根，访问子女，再访问子女的子女（越往后的层次越低）（两个子女的级别相同
+
+- 完全二叉树
+
+  h 层的树，前 h-1 层满；且第 h 层的叶子从左至右一次排列
+
+- 满二叉树
+
+  即第 h 层也满了
+  除了叶结点外每一个结点都有左右子叶且叶子结点都处在最底层的二叉树。
+
+- 平衡二叉树
+
+  平衡二叉树又被称为 AVL 树（区别于 AVL 算法），它是一棵二叉排序树，且具有以下性质：它是一棵空树或它的左右两个子树的高度差的绝对值不超过 1，并且左右两个子树都是一棵平衡二叉树。
+
+- 线索二叉树
+
+  线索二叉树(保留遍历时结点在任一序列的前驱和后继的信息)：若结点有左子树，则其lchild域指示其左孩子，否则令lchild域指示其前驱；若结点有右子树，则其rchild域指示其右孩子，否则令rchild指示其后继。还需在结点结构中增加两个标志域LTag和RTag。LTag=0时，lchild域指示结点的左孩子，LTag=1时，lchild域指示结点的前驱；RTag=0时，rchild域指示结点的右孩子，RTag=1时，rchild域指示结点的后继
 
 #### 平衡二叉树 (Balanced Binary Search Tree)
 
@@ -1407,6 +1508,28 @@ cglib 可以对任意类生成代理对象，它的原理是对目标对象进�
 
 - 引用数据类型
 
+
+**基本数据类型与包装类型的区别**
+  在Java语言中，new一个对象存储在堆里边，我们通过堆栈中的引用来使用这些对象。
+  对于常用的一系列基本数据类型，Java将其变量的值直接存储在堆栈里，因此更加高效。
+
+  基本类型包装类的存在是因为，Java是面向对象的语言，而基本类型数据并不具有对象的性质，所以就有了包装类
+
+  二者区别：
+  1. 申明方式不同，基本类型不适用new关键字，而包装类型需要使用new关键字来在堆中分配存储空间
+  2. 存储方式及位置不同，基本类型是直接将变量值存储在堆栈中，而包装类型是将对象放在堆中，然后通过引用来使用
+  3. 初始值不同，基本类型的初始值如int为0，boolean为false，而包装类型的初始值为null
+
+**包装类缓存**
+  Boolean：(全部缓存)
+  Byte：(全部缓存)
+  Character(<= 127缓存)
+  Short(-128 — 127缓存)
+  Long(-128 — 127缓存)
+  Integer(-128 — 127缓存)
+  Float(没有缓存)
+  Doulbe(没有缓存)
+
 #### hashSet 的遍历
 
 1. 迭代遍历
@@ -1478,7 +1601,30 @@ String res = new String(srtbyte,"UTF-8");
 
 ## java面向对象
 
-多态就是依赖运行期动态加载和动态链接这个特点实现的
+#### 面向对象
+
+- 三大特征
+
+  - 封装
+    把客观的事务抽象为类，对不可信的对象进行信息隐藏(对信息提供不同级别的保护)
+  - 继承
+    **为什么 Java 单继承？**
+    因为多继承的话，当继承多个父类的同名方法时会造成冲突，增加复杂性及多态的灵活性
+  - 多态
+    编译时多态 重载
+    运行时多态 重写父类方法
+
+        不同子类对象对同一消息的不同反应
+        动态绑定-->运行期间判断所引用对象的实际类型
+        条件：
+        1. 子类继承父类
+        2. 子类重写父类方法
+        3. 父类引用指向子类对象
+        好处：
+        1. 可替换性 被操作对象的多个子类可以互相替换，可对图形对象操作，即图形对象的子类，圆，方块都可以进行操作
+        2. 可扩充性 多态对代码具有可扩充性。增加新的子类不影响已存在类的多态性、继承性，以及其他特性的运行和操作
+        3. 接口性 多态是超类通过方法签名，向子类提供了一个共同接口，由子类来完善或者覆盖它而实现的
+        4. 灵活性
 
 #### java 基本数据类型
 
@@ -1501,7 +1647,7 @@ Object 类是所有类的父类，任何类都默认继承 Object。
 
   保护方法，实现对象的浅复制，只有实现了 Cloneable 接口才可以调用该方法，否则抛出 CloneNotSupportedException 异常。
 
-  在 Java 中参数传递机制为值传递，对于 8 中基本类型来说直接拷贝值，而对于对象则是拷贝引用，原对象与拷贝对象指向同意内存地址，这就是浅拷贝。当对拷贝对象进行修改时，原对象也会改变。
+  在 Java 中参数传递机制为值传递，对于 八种 基本类型来说直接拷贝值，而对于对象则是拷贝引用，原对象与拷贝对象指向同意内存地址，这就是浅拷贝。当对拷贝对象进行修改时，原对象也会改变。
 
   如果我们需要实现拷贝对象对原对象的完全拷贝则需要在类中重写 clone 方法(实现深复制)
 
@@ -1511,10 +1657,12 @@ Object 类是所有类的父类，任何类都默认继承 Object。
   - clone 方法的使用
 
 - toString()方法
+  将对象信息变为字符串返回，默认返回对象地址
 - getClass()方法
 - finalize()方法
 - equals()方法
 - hashCode()方法
+  重写 equals 时也需要重写 hashCode,不然会出现 hashset 中存在同样的值，或者 hashmap 中键重复
 - wait()方法
 - notify()方法
 - notifyAll 方法
@@ -2190,7 +2338,7 @@ Java 中 Class.forName 和 classloader 都可以对类进行加载。
 
     - 版本控制机制
 
-      一般是在数据表中加上一个数据版本号字段(version)，表示数据被修改的次数,当数据被修改时，version 值会加 1.
+      一般是在数据表中加上一个数据版本号字段(version，或者版本更新时间字段)，表示数据被修改的次数,当数据被修改时，version 值会加 1.
 
       当线程 A 要更新数据时，读取数据的同时也会读取 version，提交更新时对比 version，若之前读取的 version 与此刻数据库中 version 相等时进行更新，否则重试更新操作，直到更新成功。(类似锁的自旋)
 
@@ -3572,11 +3720,91 @@ JVM 分为方法区，虚拟机栈，本地方法栈，程序计数器，堆。�
 
 ## MySql
 
-> https://www.cnblogs.com/frankielf0921/p/5930743.html
+> 《深入浅出 MySQL》
 
-#### MyISAM 与 InnoDB 的区别
+#### 数据类型
 
-- mysql 分页机制
+#### sql 语句
+
+#### 函数
+
+#### 索引
+
+#### 存储引擎
+
+数据库引擎是数据库底层软件组件，数据库管理系统通过(DBMS)使用数据引擎进行创建、查询、更新和删除数据库操作。不同的存储引擎有不同的存储机制、索引技巧、锁机制等。
+
+mysql 提供了多个存储引擎，有 Innodb、MyISAM、Memory、Merge、Archive、Federated、CSV，BLOCKHOLE 等
+可以用`SHOW ENGINES`查看
+
+- INNODB
+
+  Innodb 是 mysql 的默认存储引擎，支持事务、行级锁和外键
+
+  1. 支持事务，提供提交、回滚、崩溃恢复能力的事务安全
+  2. innodb 存储引擎完全与 MySQL 服务器整合，Innodb 存储引擎为主内存中缓存数据和索引而维持它自己的缓冲池。innodb 将它的表和索引存在一个逻辑表空间中，表空间可以包含数个文件(或原始磁盘分区).这与 MYISAM 表不同，比如在 myisam 表中每个表被存在分离的文件中。innodb 表可以是任何尺寸，即使在文件尺寸被限制为 2GB 的操作系统
+  3. innodb 支持外键完整性约束(FOREIGN KEY)
+     存储表中的数据时，每张表的存储都按主键顺序存放，如果没有显示在表定义时指定主键，innodb 会为每一行生成一个 6BROWID，并以此作为主键。
+
+- MYISAM
+
+  MYIASM 是基于 ISAM 存储引擎，并对其扩展。它是在 web、数据仓储和其他应用环境下最常用的存储引擎之一。MYISAM 拥有较高的插入、查询速度，但不支持事务。
+
+  1. 大文件(达 63 位文件长度)在支持大文件的文件系统和操作系统上被支持
+  2. 当把删除和更新及插入操作混合使用的时候，动态尺寸的行产生更少碎片。这要通过合并相邻被删除的块，以及若下一个块被删除，就扩展到下一块来自动完成
+  3. BLOB 和 TEXT 列可以被索引
+  4. 对包含 NULL 值的列可索引
+  5. 可以吧数据文件和索引文件放在不同目录
+     使用 myisam 引擎创建数据库，将产生 3 个文件。文件的名字以表的名字开始，扩展名指出文件类型：frm 文件存储表定义，数据文件的扩展名为.MYD（MYData），索引文件的扩展名为.MYI（MYIndex）
+
+- MEMORY
+
+  MEMORY 存储引擎将表中数据存储到内存中，为查询和引用其他表数据提供快速访问。
+
+  1. MEMORY 表的每个表可以有多达 32 个索引，每个索引 16 列，以及 500B 的最大键值长度。
+  2. MEMORY 存储引擎执行 HASH 和 BTABLE 索引
+  3. 可以在 MOMORY 表中有非唯一键
+  4. 不支持 BLOB 和 TEXT 列
+  5. 对包含 NULL 值的列可索引
+  6. MEMORY 表内容存储在内存中，内存是 MEMORY 表和服务器在查询处理的空闲中创建的内部表共享
+  7. 当不再需要 MEMORY 表的内容时，要释放被 MEMORY 表使用的内存，应该执行 DELETE FROM 或者 TRUNCATE TABLE 或者删除整个表 DROP TABLE
+
+#### 数据库优化
+
+原则：
+
+1. 减少系统的瓶颈 -- 优化文件系统，提高 IO 读写速度
+2. 减少资源的占用 -- 优化操作系统的调度策略，增加负载能力
+3. 增加系统的反应速度 -- 优化表结构、索引、查询语句 --> 响应更快
+
+show status 可以查询一些 MySQL 的性能参数
+`show status like 'key';`
+
+- key 的取值：
+  Connections 连接 MySQL 的次数
+  Uptime MySQL 服务器上线时间
+  Slow_queries 慢查询的次数
+  Com_select 查询操作的次数
+  Com_update 更新操作的次数
+  Com_delete 删除操作的次数
+
+查询语句优化分析可通过 `Explain` 关键字或 `describe`
+
+**如果查询时没有索引，查询语句将扫描表中的所有记录**
+
+优化索引：
+
+1. 使用 LIKE 关键字的查询语句
+
+在使用 LIKE 关键字进行查询是，如果匹配字符串的第一个字符为"%"，索引不会起作用。只有"%"不再第一个位置，索引才会起作用。
+
+2. 使用多列索引的查询语句
+
+MySQL 可以为多个字段创建索引。一个索引可以包括 16 个字段。对于多列索引，只有查询条件中使用了这些字段中第一个字段时，索引才会被使用。
+
+3. 使用 OR 关键字的查询语句
+
+查询语句的查询条件中只有 OR 关键字，且 OR 前后的两个条件中的列都是索引时，查询中才使用索引。否则，查询将不再使用索引
 
 #### 例题
 
@@ -4223,7 +4451,160 @@ collections 库
 
 ## Shell
 
+> 鸟哥 linux 私房菜
 
+#### 正则
+
+基本正则与扩展的正则(可分组)
+
+- 基本正则
+  默认语系 LANG=c ： 0 1 2 3 ... A B C ... a b c ... z
+
+  | 特殊符号   | 代表意义                                         |
+  | ---------- | ------------------------------------------------ |
+  | [:alnum:]  | 代表英文大小写字符及数字，即0-9A-Za-z            |
+  | [:alpha:]  | 代表英文大小写字符，即A-Za-z                     |
+  | [:blank:]  | 代表空格与tab                                    |
+  | [:space:]  | 代表空白，空格换行tab等                          |
+  | [:cntrl:]  | 代表键盘上面的控制按键，即包括CR，LF，Tab，DEL等 |
+  | [:digit:]  | 数字，即0-9                                      |
+  | [:xdigit:] | 16进制的数字，即0-9A-Fa-f                        |
+  | [:graph:]  | 除了空白的字符                                   |
+  | [:lower:]  | 小写字目                                         |
+  | [:upper:]  | 大写字母                                         |
+  | [:print:]  | 可打印的字符                                     |
+  | [:punct:]  | 标点字符                                         |
+
+#### grep用正则
+
+grep [-acinv] [--color=auto] 'searchKey' filename
+  -a 将binary文件以text文件的方式查找数据
+  -c 计算找到 'searchKey' 的次数
+  -i 忽略大小写
+  -n 顺便输出行号
+  -v 反向选择，即输出不包含 'searchKey'的行
+
+```
+grep [-A] [-B] [--color=auto] 'searchKey' filename
+参数：
+  -A: 后面可加数字，为after的意思，除了列出该行外，后面的n行也列出来
+  -B: 后面可加数字，为before的意思，除了列出该行外，前面的n行也列出来
+  --color=auto 可将正确的那个选项数据列出颜色
+
+
+# 用dmesg列出内核信息，再以grep找出含有eth的行
+dmesg | grep 'eth'
+# 要将找到的关键字以颜色标注，并且显示行号
+dmesg | grep -n --color=auto 'eth'
+# 关键字所在的前两行与后三行也显示
+dmesg | grep -n -A3 -B2 --color=auto 'eth'
+# 结果显示前3行
+dmesg | grep 'eth' | head -n 3
+# 这是别名grep为grep --color=auto
+alias grep='grep --color=auto'
+
+
+练习：
+  # 查找特定关键字
+  grep -n 'the' regular_express.txt
+
+  # 反向查找
+  grep -vn 'the' regular_express.txt
+
+  #利用[]查找集合字符
+  grep -n 't[ae]st' regular_express.txt
+  grep -n '[^g]oo' regular_express.txt
+  grep -n '[^a-z]oo' regular_express.txt
+  grep -n '[^[:lower:]]oo' regular_express.txt
+  grep -n '[[:digit:]]' regular_express.txt
+
+  # 行首^与行尾$ , ^字符在 [] 里表示非，其他位置表示行首
+  grep -n '^the' regular_express.txt
+  grep -n '^[a-z]' regular_express.txt 
+  # 过滤空行
+  grep -v '^$' 
+
+  # . 字符(表示任意一个字符) 与 * 字符(表示前一个字符重复0~n次)
+  grep -n 'go*d' regular_express.txt
+
+  # {} 范围限定 {}需要转义
+  grep -n 'o\{2\}' regular_express.txt
+  grep -n 'o\{1,2\}' regular_express.txt
+
+```
+
+| RE字符 | 意义 | 例子 |
+| ------ | ---- | ---- |
+
+
+#### sed工具
+
+sed可以对数据进行替换、删除、新增、选取特定行等的功能
+
+sed [-nefr] [动作]
+参数：
+  -n : 使用安静模式(silent)模式，在一般sed的用法中，所有来在stdin的数据一般都会被列出到屏幕上，但如果加上-n参数，只有经过sed处理过的行才会显示
+  -e : 直接在命令行模式上进行sed的当作编辑
+  -f : 直接将sed的动作写在一个文件里，-f filename则可以继续执行filename内的sed动作
+  -r : sed的动作支持的事扩展型正则语法(默认基本)
+  -i : 直接修改读取的文件，而不是屏幕输出
+动作说明：[n1[,n2]]function
+  n1,n2不见得会存在，一般代表选择动作的行数，举例来说，如果我的动作要操作10~20行，则 '10,20[动作行为]'
+
+  function有以下参数：
+  a: 新增，a的后面可以接受字符串，这些字符串会在新的一行出现(当前行的下一行)
+  c: 替换，
+  d: 删除
+  i: 插入
+  p: 打印
+  s: 替换,支持正则  如 1，20s/old/new/g
+
+```
+# 以行为单位的新增/删除
+  # 删除2~5行 动作需要''包裹
+  nl /etc/passwd | sed '2,5d'
+  # 删除3到最后一行
+  nl /etc/passwd | sed '3,$d'
+
+  # 在第二行后添加"drink tea?"
+  nl etc/passwd | sed '2a drink tea'
+  >>> 1 ...
+      2 bin:x ...
+      drink tea 
+      3 ...
+      ...
+  # 在第二行后添加两行内容， 需要\
+  nl etc/passwd | sed '2a dringk tea or \
+  drink bear?'
+  
+# 以行为单位的替换和显示
+  # 将2~5行替换为"No 2-5 number"
+  nl etc/passwd | sed '2,5c No 2-5 number'
+  # 列出10~20行
+  nl etc/passwd | head 20 | tail 10
+  nl etc/passwd | sed -n '10,20p'
+
+
+#从ifconfig中获取ip
+ifconfig | grep 'inet addr' | sed 's/^.*addr://g' | sed 's/Bcast.*$//g'
+```
+
+#### 扩展正则
+egrep
+
+
+| RE字符 | 意义 | 例子 |
+| ------ | ---- | ---- |
+
+#### awk 好用的数据处理工具
+
+awk是一个非常棒的数据处理工具。相比于sed常常对一整行的处理，awk倾向于将一行数据分为数个字段进行处理。
+
+awk '条件类型1{动作1} 条件类型2{动作2} ...' filename
+
+`last -n 5 | awk '{print $1 "\t" $3}'`
+
+通过print的功能将字段数据列出来，字段的分隔以空格键或者tab来隔开。因为每一行都需要处理，因此不需要条件类型的限制。
 
 ## Spring
 

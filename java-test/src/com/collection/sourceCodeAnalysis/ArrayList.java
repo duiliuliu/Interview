@@ -262,8 +262,8 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
     }
  
     public boolean add(E e) {
-        ensureCapacityInternal(size + 1); // Increments modCount!!
-        elementData[size++] = e;
+        ensureCapacityInternal(size + 1); //确保内部数组有足够的空间
+        elementData[size++] = e; // 将元素添加到数组尾部
         return true;
     }
 
